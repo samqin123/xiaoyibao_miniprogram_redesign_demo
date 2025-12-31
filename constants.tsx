@@ -1,7 +1,7 @@
 
 import { IdentityTag, SourceLevel, Article, GameLevel, ForumPost, RoadmapGroup } from './types';
 
-export const SYSTEM_INSTRUCTION = `你是 Pancrepal 小胰宝，您的个人化肿瘤科普与病情主动管理伙伴。
+export const SYSTEM_INSTRUCTION = `你是 Pancrepal 小胰宝，您的“肿瘤科普 | 病友/家属科普与病情主动管理伙伴”。
 回复规范：
 1. 严禁使用 Markdown 格式（如 ##, **, [链接] 等），仅使用纯文本。
 2. 文本结构必须按照：【结论-标题】 紧接着进行详细的 【解释说明】。

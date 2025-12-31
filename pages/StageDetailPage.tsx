@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowLeft, MessageCircle, Bot, Loader2, Sparkles, ChevronRight, 
   BookOpen, Users, QrCode, Info, ShieldCheck, FileText, 
   Target, Heart, HelpCircle, ArrowRight, Star, FileJson, 
   Link as LinkIcon, File as FileIcon, ExternalLink, PlayCircle,
-  FileSearch, CheckCircle2, MoreHorizontal, Share2
+  FileSearch, CheckCircle2, MoreHorizontal, Share2, Briefcase, 
+  Activity, Users2, Flower2, Baby
 } from 'lucide-react';
 import SourceBadge from '../components/SourceBadge';
 import { SourceLevel } from '../types';
@@ -40,10 +42,23 @@ interface StageContent {
   groups: { name: string; theme: string; id: string }[];
 }
 
+interface Props {
+  stageId: string;
+  onBack: () => void;
+  onGoToChat: () => void;
+}
+
 const TOOLS: Tool[] = [
-  { id: 'knows', name: 'KnowS', category: '医学知识库', isMiniApp: true },
-  { id: 'csco_guide', name: '肿瘤治疗指南（CSCO）', category: '诊疗规范', isMiniApp: true },
-  { id: 'tx_yidian', name: '腾讯医典', category: '用药管理', isMiniApp: true },
+  { id: 'knows', name: 'KnowS 医学百科', category: '医学知识库', isMiniApp: true },
+  { id: 'csco_guide', name: 'CSCO 诊疗指南', category: '诊疗规范', isMiniApp: true },
+  { id: 'tx_yidian', name: '腾讯医典', category: '科普库', isMiniApp: true },
+  { id: 'nutri_pal', name: '营养伴侣', category: '营养评估', isMiniApp: true },
+  { id: 'psy_guardian', name: '心理守护', category: '心理评测', isMiniApp: true },
+  { id: 'follow_up', name: '随访助手', category: '随访管理', isMiniApp: true },
+  { id: 'pain_log', name: '疼痛日记', category: '症状监测', isMiniApp: true },
+  { id: 'life_rebuild', name: '生活重建', category: '生活质量', isMiniApp: true },
+  { id: 'doc_connect', name: '名医直连', category: '专家预约', isMiniApp: true },
+  { id: 'community_hub', name: '战友互助中心', category: '社群交流', isMiniApp: true },
 ];
 
 const STAGE_LANDING_DATA: Record<string, StageContent> = {
@@ -65,64 +80,40 @@ const STAGE_LANDING_DATA: Record<string, StageContent> = {
       { title: '防癌体检中的常见陷阱', desc: '为什么普通B超容易漏诊', type: '避坑指南', level: SourceLevel.C }
     ],
     experiences: [
-      { 
-        image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80', 
-        title: '体检发现指标异常，我是如何在一周内确诊并手术的', 
-        author: '阳光下的莘花', 
-        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80',
-        likes: '2.8k' 
-      },
-      { 
-        image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?w=400&q=80', 
-        title: '陪老爸抗癌这一年，早筛救了他的命', 
-        author: '抗癌家属小李', 
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80',
-        likes: '1.2k' 
-      }
+      { image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80', title: '体检发现指标异常，我是如何在一周内确诊并手术的', author: '阳光下的莘花', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80', likes: '2.8k' },
+      { image: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?w=400&q=80', title: '陪老爸抗癌这一年，早筛救了他的命', author: '抗癌家属小李', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80', likes: '1.2k' }
     ],
     groups: [{ id: 'g1', name: '早筛风险沟通群', theme: '指标解读与专家推荐' }]
   },
-  'post_op': {
-    consensusTitle: '术后康复与防复发管理',
+  'quality_life': {
+    consensusTitle: '生活质量与社会功能重建',
     consensusPoints: [
-      '引流管管理：严格记录每日引流量与颜色，预防胰漏等并发症。',
-      '辅助化疗：建议在体力状况恢复后（通常4-8周）尽早开启辅助治疗。',
-      '营养代偿：胰腺切除后需补充消化酶，少食多餐，关注血糖波动。'
+      '工作平衡：化疗期间可根据体力选择弹性工作方式，有助于维持心理价值感。',
+      '亲密关系：化疗药物不会通过日常接触传播，合理的性生活有助于缓解焦虑，但需采取安全措施。',
+      '生育保护：育龄患者应在治疗前咨询冷冻卵子/精子方案，保留未来生育可能。'
     ],
     docs: [
-      { type: 'pdf', title: '胰腺癌术后辅助化疗指南要点.pdf', url: '#' },
-      { type: 'tencent', title: '【打卡表】术后每日症状监控清单', url: '#' },
-      { type: 'link', title: '公众号：术后三个月饮食红黑榜', url: '#' }
+      { type: 'pdf', title: '肿瘤患者回归社会生活指南.pdf', url: '#' },
+      { type: 'link', title: '专题：化疗期间如何保持职场竞争力', url: '#' },
+      { type: 'tencent', title: '【攻略】假发与化妆：身体形象重建手册', url: '#' }
     ],
     recommendations: [
-      { title: '术后营养补充全策略', desc: '吃不下、拉肚子、血糖高？试试这些', type: '营养必备', level: SourceLevel.A },
-      { title: '术后复查如何安排？', desc: '两年内复查时间表与必查项目清单', type: '随访指南', level: SourceLevel.B },
-      { title: '胰漏的早期识别与预防', desc: '居家护理时这些信号必须第一时间联系医生', type: '风险预警', level: SourceLevel.A }
+      { title: '化疗期间能有性生活吗？', desc: '医生不敢说、你不敢问的私密建议', type: '亲密关系', level: SourceLevel.A },
+      { title: '肿瘤患者的运动处方', desc: '什么时候能跑？什么时候只能散步？', type: '体能重建', level: SourceLevel.B },
+      { title: '疤痕与脱发的心里调适', desc: '找回那个“不再完美但依然爱自己”的你', type: '身体形象', level: SourceLevel.C }
     ],
     experiences: [
-      { 
-        image: 'https://images.unsplash.com/photo-1584362917165-526a968579e8?w=400&q=80', 
-        title: 'Whipple手术后的饮食记录，三个月增重5kg', 
-        author: '暖暖康复日记', 
-        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80',
-        likes: '1.9k' 
-      },
-      { 
-        image: 'https://images.unsplash.com/photo-1551076805-e1869033e561?w=400&q=80', 
-        title: '化疗第一周副作用管理经验分享，心态最重要', 
-        author: '向阳而生', 
-        avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=100&q=80',
-        likes: '956' 
-      }
+      { image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&q=80', title: '带着假发回公司上班的第一天，同事们的反应让我哭了', author: '勇敢的职场妈', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80', likes: '5.2k' },
+      { image: 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=400&q=80', title: '确诊前我刚准备要孩子，分享我的冻卵心路历程', author: '向阳小花', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80', likes: '3.9k' }
     ],
-    groups: [{ id: 'g2', name: '术后防复发战友群', theme: '康复随访与生活管理' }]
+    groups: [{ id: 'g_life', name: '生活品质管理群', theme: '职业规划与两性沟通' }]
   },
   'nutri_eval': {
     consensusTitle: '科学营养筛查与干预',
     consensusPoints: [
       '动态监测：每周固定时间测量空腹体重，非预期下降>5%需立即干预。',
       '风险评估：使用PG-SGA量表进行专业评估，识别隐匿性营养不良。',
-      '蛋白优先：胰腺癌患者需高蛋白饮食，必要时补充肠内营养制剂。'
+      '补充原则：高蛋白、高能量、少食多餐，必要时补充肠内营养制剂。'
     ],
     docs: [
       { type: 'pdf', title: '肿瘤患者营养支持治疗指南 2024.pdf', url: '#' },
@@ -135,104 +126,24 @@ const STAGE_LANDING_DATA: Record<string, StageContent> = {
       { title: '肠内营养制剂怎么选？', desc: '口感、成分、适用人群深度测评', type: '产品解析', level: SourceLevel.B }
     ],
     experiences: [
-      { 
-        image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80', 
-        title: '从瘦骨嶙峋到体能恢复，分享我的营养管理方案', 
-        author: '抗癌小厨神', 
-        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80',
-        likes: '3.2k' 
-      },
-      { 
-        image: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&q=80', 
-        title: '营养粉真的难喝吗？我试了5个牌子后的总结', 
-        author: '测评达人老王', 
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80',
-        likes: '1.2k' 
-      }
+      { image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80', title: '从体重暴跌到恢复正常，我的增重食谱分享', author: '抗癌小厨神', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80', likes: '3.1k' },
+      { image: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&q=80', title: '化疗期的饮食红黑榜，这些真的很有用', author: '营养师老刘', avatar: 'https://images.unsplash.com/photo-1559839734-2b71f1e3c770?w=100&q=80', likes: '1.5k' }
     ],
-    groups: [{ id: 'g3', name: '营养互助交流群', theme: '食谱分享与指标追踪' }]
-  },
-  'xinbao_companion': {
-    consensusTitle: '心理韧性与同伴支持',
-    consensusPoints: [
-      '正念干预：每日15分钟冥想，可显著改善焦虑水平和睡眠质量。',
-      '沟通机制：建议家属与患者保持适度透明沟通，避免“保护性隐瞒”。',
-      '危机识别：若出现持续的情绪低落或自我孤立，应寻求心理咨询干预。'
-    ],
-    docs: [
-      { type: 'link', title: '冥想音频：15分钟深度抗压放松', url: '#' },
-      { type: 'pdf', title: '肿瘤心理调适科普手册.pdf', url: '#' },
-      { type: 'tencent', title: '【记录】情绪气象站日记模版', url: '#' }
-    ],
-    recommendations: [
-      { title: '确诊后的心理五阶段', desc: '读懂自己的情绪反应，与恐惧共处', type: '心理急救', level: SourceLevel.A },
-      { title: '如何对孩子谈论病情？', desc: '不同年龄段孩子的沟通技巧建议', type: '家庭沟通', level: SourceLevel.B },
-      { title: '寻找生活中的“微光”', desc: '建立积极心理暗示的方法论', type: '能量补给', level: SourceLevel.C }
-    ],
-    experiences: [
-      { 
-        image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80', 
-        title: '确诊的那晚我以为天塌了，现在我学会了享受当下', 
-        author: '心如止水', 
-        avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=100&q=80',
-        likes: '5.1k' 
-      },
-      { 
-        image: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400&q=80', 
-        title: '家属的心理疏导同样重要，分享我的陪护自愈之路', 
-        author: '守护者老周', 
-        avatar: 'https://images.unsplash.com/photo-1559839734-2b71f1e3c770?w=100&q=80',
-        likes: '2.4k' 
-      }
-    ],
-    groups: [{ id: 'g4', name: '心灵花园互助组', theme: '情绪倾诉与冥想打卡' }]
-  },
-  'palliative_care': {
-    consensusTitle: '安宁疗护与症状管理',
-    consensusPoints: [
-      '止痛原则：严格执行三阶梯镇痛，按时服药而非按需服药，保障生活质量。',
-      '症状舒缓：通过综合手段缓解呼吸困难、顽固性便秘等晚期症状。',
-      '生命尊严：尊重个人意愿，优先维护生命末期的尊严与舒适感。'
-    ],
-    docs: [
-      { type: 'pdf', title: '安宁疗护核心症状管理指南.pdf', url: '#' },
-      { type: 'tencent', title: '【自查】疼痛程度VAS自测工具', url: '#' },
-      { type: 'link', title: '视频：什么是真正的“善终”', url: '#' }
-    ],
-    recommendations: [
-      { title: '止痛药会上瘾吗？', desc: '科学解读吗啡类药物的规范使用', type: '止痛必备', level: SourceLevel.A },
-      { title: '安宁疗护不代表放弃', desc: '为什么说它是对生命更高维度的尊重', type: '理念科普', level: SourceLevel.B },
-      { title: '居家舒缓护理小窍门', desc: '如何缓解水肿与压疮风险', type: '护理干货', level: SourceLevel.C }
-    ],
-    experiences: [
-      { 
-        image: 'https://images.unsplash.com/photo-1517021897933-0e0319cfbc28?w=400&q=80', 
-        title: '陪母亲走完最后一段路，安宁疗护让我们没有遗憾', 
-        author: '微光守护', 
-        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80',
-        likes: '4.8k' 
-      },
-      { 
-        image: 'https://images.unsplash.com/photo-1505330622279-bf7d7fc918f4?w=400&q=80', 
-        title: '止痛方案调整后，爸爸终于睡了一个安稳觉', 
-        author: '小陈', 
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80',
-        likes: '1.5k' 
-      }
-    ],
-    groups: [{ id: 'g5', name: '安宁护航互助群', theme: '症状支持与人文关怀' }]
+    groups: [{ id: 'g_nutri', name: '营养互助打卡群', theme: '食谱分享与指标监督' }]
   }
 };
 
-interface Props {
-  stageId: string;
-  onBack: () => void;
-  onGoToChat: () => void;
-}
-
 const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat }) => {
   const [jumpingId, setJumpingId] = useState<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const content = STAGE_LANDING_DATA[stageId] || STAGE_LANDING_DATA['early'];
+
+  // 强化跳转自动置顶逻辑：详情页内部的滚动容器也必须归零
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [stageId]);
 
   const handleToolClick = async (tool: Tool) => {
     try {
@@ -256,9 +167,9 @@ const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat }) => {
   };
 
   return (
-    <div className="min-h-full bg-slate-50 animate-in fade-in duration-500 flex flex-col relative">
-      {/* 顶部导航 */}
-      <div className="bg-white/90 backdrop-blur-xl px-6 pt-12 pb-6 sticky top-0 z-50 border-b border-slate-100/50 shrink-0">
+    <div className="min-h-full bg-slate-50 flex flex-col relative animate-in fade-in duration-500">
+      {/* 顶部导航 - 吸顶设计 */}
+      <div className="bg-white/95 backdrop-blur-xl px-6 pt-12 pb-6 sticky top-0 z-50 border-b border-slate-100/50 shrink-0">
         <div className="flex items-center justify-between mb-5">
           <button onClick={onBack} className="p-2.5 bg-slate-100 rounded-2xl text-slate-500 active:scale-90 transition-all">
             <ArrowLeft className="w-5 h-5" />
@@ -285,8 +196,12 @@ const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat }) => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 pt-5 pb-48 space-y-10">
-        {/* 1. 指南共识 */}
+      {/* 内容区域 - 内部滚动重置 */}
+      <div 
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto px-5 pt-5 pb-48 space-y-10"
+      >
+        {/* 1. 指南共识精要 */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
             <ShieldCheck className="w-5 h-5 text-brand-core" />
@@ -325,7 +240,6 @@ const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat }) => {
                 ))}
               </div>
             </div>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-soft/30 rounded-full blur-3xl -translate-y-16 translate-x-16"></div>
           </div>
         </section>
 
@@ -385,37 +299,38 @@ const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat }) => {
           </div>
         </section>
 
-        {/* 4. 挑战任务 */}
-        <section className="space-y-4">
-          <div className="bg-gradient-to-br from-brand-core to-brand-dark rounded-[3.2rem] p-9 text-white flex items-center justify-between shadow-2xl relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all border-4 border-white">
-            <div className="space-y-3.5 relative z-10">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
-                   <Star className="w-5 h-5 text-brand-orange fill-brand-orange animate-bounce-subtle" />
-                </div>
-                <h4 className="text-xl font-black">科普达人挑战</h4>
-              </div>
-              <p className="text-xs text-white/70 font-bold leading-relaxed">
-                完成本阶段指南考核<br/>奖励 +10 AI 永久配额
-              </p>
-              <div className="flex items-center gap-3 pt-2">
-                <div className="bg-white text-brand-dark px-5 py-2.5 rounded-2xl text-[11px] font-black flex items-center gap-2 shadow-lg group-hover:bg-brand-soft">
-                  开始答题 <ArrowRight className="w-4 h-4" />
-                </div>
-              </div>
+        {/* 4. 生活管理专题 */}
+        {stageId === 'quality_life' && (
+          <section className="space-y-4">
+             <div className="flex items-center gap-2 px-1">
+              <Sparkles className="w-5 h-5 text-brand-core" />
+              <h3 className="text-base font-black text-slate-800">生活管理专题</h3>
             </div>
-            <div className="w-28 h-28 bg-white/10 rounded-[2.5rem] flex items-center justify-center backdrop-blur-md border border-white/10 rotate-12 group-hover:rotate-0 transition-transform duration-500">
-              <HelpCircle className="w-14 h-14 text-white/40" />
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { icon: Briefcase, label: '职场与工作', color: 'bg-blue-50 text-blue-500' },
+                { icon: Activity, label: '运动处方', color: 'bg-emerald-50 text-emerald-500' },
+                { icon: Users2, label: '亲密关系', color: 'bg-pink-50 text-pink-500' },
+                { icon: Flower2, label: '身体形象', color: 'bg-purple-50 text-purple-500' },
+                { icon: Baby, label: '生育规划', color: 'bg-orange-50 text-orange-500' },
+                { icon: PlayCircle, label: '回归路线图', color: 'bg-slate-50 text-slate-500' },
+              ].map((item, i) => (
+                <div key={i} className="bg-white p-4 rounded-3xl card-shadow border border-slate-50 flex flex-col items-center gap-2 hover:border-brand-core transition-all cursor-pointer">
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${item.color}`}>
+                    <item.icon className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px] font-black text-slate-700">{item.label}</span>
+                </div>
+              ))}
             </div>
-            <div className="absolute top-[-40%] right-[-20%] w-64 h-64 bg-white/10 rounded-full blur-[80px]"></div>
-          </div>
-        </section>
+          </section>
+        )}
 
-        {/* 5. 智能工具推荐 */}
+        {/* 5. 推荐工具 (完整的 10 项清单) */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
             <Sparkles className="w-5 h-5 text-brand-orange" />
-            <h3 className="text-base font-black text-slate-800">推荐工具</h3>
+            <h3 className="text-base font-black text-slate-800">推荐工具清单</h3>
           </div>
           <div className="grid grid-cols-1 gap-3.5">
             {TOOLS.map((tool) => (
@@ -444,23 +359,26 @@ const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat }) => {
           </div>
         </section>
 
-        {/* 底部声明 */}
+        {/* 底部版权 */}
         <div className="px-10 py-10 text-center space-y-3 opacity-30">
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Medical Support Ecosystem V2.5</p>
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Medical Support Ecosystem V2.2</p>
           <p className="text-[10px] font-bold text-slate-400 leading-relaxed">所有信源均经由平台医学顾问委员会多重审核与认证</p>
         </div>
       </div>
 
-      {/* 悬浮 AI 对话入口 - 修正比例与美感，采用品牌渐变色并限制在容器内 */}
-      <div className="fixed bottom-28 left-1/2 -translate-x-1/2 w-[calc(100%-48px)] max-w-[calc(28rem-48px)] z-50">
+      {/* 悬浮 AI 对话入口 */}
+      <div className="absolute bottom-24 left-6 right-6 z-[60] flex justify-center pointer-events-none">
         <button 
-          onClick={onGoToChat}
-          className="w-full bg-gradient-to-r from-brand-core to-brand-dark text-white py-4.5 rounded-[2.5rem] shadow-2xl shadow-brand-core/30 border-4 border-white flex items-center justify-center gap-3 active:scale-[0.97] transition-all group"
+          onClick={(e) => {
+            e.stopPropagation();
+            onGoToChat();
+          }}
+          className="w-full bg-gradient-to-r from-brand-core to-brand-dark text-white py-4.5 rounded-[2.5rem] shadow-2xl shadow-brand-core/30 border-4 border-white flex items-center justify-center gap-3 active:scale-[0.97] transition-all group pointer-events-auto"
         >
           <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform">
             <Bot className="w-5 h-5 text-white" />
           </div>
-          <span className="text-[14px] font-black tracking-tight">针对该阶段向 AI 提问</span>
+          <span className="text-[15px] font-black tracking-tight">针对此阶段向 AI 提问</span>
         </button>
       </div>
     </div>

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Home, 
   MessageCircle, 
@@ -57,6 +58,8 @@ const App: React.FC = () => {
   const [initialProfileTab, setInitialProfileTab] = useState<'stats' | 'posts'>('stats');
   const [shouldOpenCommunityModal, setShouldOpenCommunityModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  const mainContentRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('current_user');
@@ -65,6 +68,13 @@ const App: React.FC = () => {
       setIsLoggedIn(true);
     }
   }, []);
+
+  // 全局滚动置顶逻辑：每当标签切换或详情页ID变化，强制重置滚动位置
+  useEffect(() => {
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTop = 0;
+    }
+  }, [activeTab, selectedStageId]);
 
   const handleLogin = () => {
     const savedQuota = localStorage.getItem('accumulated_quota');
@@ -155,7 +165,7 @@ const App: React.FC = () => {
           <MascotAvatar />
           <div>
             <h1 className="text-lg font-black text-slate-800 tracking-tight leading-none">小胰宝</h1>
-            <p className="text-[9px] text-brand-dark font-black mt-1 uppercase tracking-wider">肿瘤科普与病情主动管理伙伴</p>
+            <p className="text-[9px] text-brand-dark font-black mt-1 uppercase tracking-wider">肿瘤科普 | 病友/家属科普与病情主动管理伙伴</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -169,7 +179,7 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto pb-24 scroll-smooth relative">
+      <main ref={mainContentRef} className="flex-1 overflow-y-auto pb-24 scroll-smooth relative">
         {activeTab === 'roadmap' && (
           selectedStageId ? (
             <StageDetailPage 
