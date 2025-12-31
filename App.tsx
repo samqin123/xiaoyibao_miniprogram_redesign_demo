@@ -1,5 +1,3 @@
-
-// Complete the App component and ensure default export exists
 import React, { useState, useEffect } from 'react';
 import { 
   Home, 
@@ -61,7 +59,6 @@ const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Check if user session exists in local storage
     const savedUser = localStorage.getItem('current_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
@@ -140,6 +137,10 @@ const App: React.FC = () => {
     setActiveTab('community');
   };
 
+  const navigateToCommunity = () => {
+    setActiveTab('community');
+  };
+
   if (!isLoggedIn) {
     return <LandingPage onLogin={handleLogin} />;
   }
@@ -184,7 +185,8 @@ const App: React.FC = () => {
         {activeTab === 'articles' && (
           <ArticlesPage 
             onGoToMyPosts={navigateToMyPosts} 
-            onGoToCreatePost={navigateToCreatePost} 
+            onGoToCreatePost={navigateToCreatePost}
+            onGoToCommunity={navigateToCommunity}
           />
         )}
         {activeTab === 'game' && <GamePage onPass={updateQuota} />}
@@ -193,6 +195,7 @@ const App: React.FC = () => {
             onShare={() => updateQuota(5)} 
             autoOpenModal={shouldOpenCommunityModal}
             onCloseModal={() => setShouldOpenCommunityModal(false)}
+            onBack={() => setActiveTab('articles')}
           />
         )}
         {activeTab === 'profile' && <ProfilePage user={user} initialTab={initialProfileTab} onLogout={handleLogout} />}
@@ -212,13 +215,12 @@ const App: React.FC = () => {
           { id: 'chat', icon: MessageCircle, label: '小胰宝' },
           { id: 'articles', icon: BookOpen, label: '科普' },
           { id: 'game', icon: Gamepad2, label: '闯关' },
-          { id: 'community', icon: Users, label: '社区' },
           { id: 'profile', icon: UserCircle, label: '我的' },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => handleTabChange(tab.id)}
-            className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-2xl transition-all ${
+            className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-2xl transition-all ${
               activeTab === tab.id ? 'text-brand-core' : 'text-slate-400'
             }`}
           >

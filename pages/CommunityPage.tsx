@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { MOCK_POSTS } from '../constants';
 import { IdentityTag, ForumPost } from '../types';
@@ -19,16 +18,18 @@ import {
   Trash2,
   AlertCircle,
   Clock,
-  Sparkles
+  Sparkles,
+  ArrowLeft
 } from 'lucide-react';
 
 interface Props {
   onShare: () => void;
   autoOpenModal?: boolean;
   onCloseModal?: () => void;
+  onBack?: () => void;
 }
 
-const CommunityPage: React.FC<Props> = ({ onShare, autoOpenModal, onCloseModal }) => {
+const CommunityPage: React.FC<Props> = ({ onShare, autoOpenModal, onCloseModal, onBack }) => {
   const [posts, setPosts] = useState<ForumPost[]>(MOCK_POSTS);
   const [isPosting, setIsPosting] = useState(false);
   const [postTitle, setPostTitle] = useState('');
@@ -138,14 +139,22 @@ const CommunityPage: React.FC<Props> = ({ onShare, autoOpenModal, onCloseModal }
         </div>
       )}
 
-      <div className="flex justify-between items-start">
-        <div className="space-y-1">
-          <h2 className="text-2xl font-black text-brand-dark tracking-tight">互助社区</h2>
-          <p className="text-[13px] text-slate-500 font-medium">分享真实经验，传递暖心力量</p>
+      {/* Title & Back Area */}
+      <div className="flex flex-col gap-4">
+        {onBack && (
+          <button onClick={onBack} className="flex items-center gap-2 text-brand-dark font-black text-sm group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> 返回科普
+          </button>
+        )}
+        <div className="flex justify-between items-start">
+          <div className="space-y-1">
+            <h2 className="text-2xl font-black text-brand-dark tracking-tight">互助社区</h2>
+            <p className="text-[13px] text-slate-500 font-medium">分享真实经验，传递暖心力量</p>
+          </div>
+          <button className="flex items-center gap-1.5 bg-red-50 text-red-600 px-3 py-2 rounded-xl text-[11px] font-black border border-red-100 shadow-sm">
+            <ShieldAlert className="w-4 h-4" /> 危机预警
+          </button>
         </div>
-        <button className="flex items-center gap-1.5 bg-red-50 text-red-600 px-3 py-2 rounded-xl text-[11px] font-black border border-red-100 shadow-sm">
-          <ShieldAlert className="w-4 h-4" /> 危机预警
-        </button>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-5 px-5 scrollbar-hide">
