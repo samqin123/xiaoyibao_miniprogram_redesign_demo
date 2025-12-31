@@ -46,6 +46,7 @@ interface Props {
   stageId: string;
   onBack: () => void;
   onGoToChat: () => void;
+  isCareMode?: boolean;
 }
 
 const TOOLS: Tool[] = [
@@ -133,12 +134,11 @@ const STAGE_LANDING_DATA: Record<string, StageContent> = {
   }
 };
 
-const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat }) => {
+const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat, isCareMode }) => {
   const [jumpingId, setJumpingId] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const content = STAGE_LANDING_DATA[stageId] || STAGE_LANDING_DATA['early'];
 
-  // 强化跳转自动置顶逻辑：详情页内部的滚动容器也必须归零
   useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0;
@@ -158,66 +158,63 @@ const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat }) => {
   };
 
   const getDocIcon = (type: string) => {
+    const size = isCareMode ? "w-7 h-7" : "w-5 h-5";
     switch (type) {
-      case 'pdf': return <FileIcon className="w-5 h-5 text-red-500" />;
-      case 'doc': return <FileText className="w-5 h-5 text-blue-500" />;
-      case 'tencent': return <FileJson className="w-5 h-5 text-brand-core" />;
-      default: return <LinkIcon className="w-5 h-5 text-slate-400" />;
+      case 'pdf': return <FileIcon className={`${size} text-red-500`} />;
+      case 'doc': return <FileText className={`${size} text-blue-500`} />;
+      case 'tencent': return <FileJson className={`${size} text-brand-core`} />;
+      default: return <LinkIcon className={`${size} text-slate-400`} />;
     }
   };
 
   return (
-    <div className="min-h-full bg-slate-50 flex flex-col relative animate-in fade-in duration-500">
-      {/* 顶部导航 - 吸顶设计 */}
-      <div className="bg-white/95 backdrop-blur-xl px-6 pt-12 pb-6 sticky top-0 z-50 border-b border-slate-100/50 shrink-0">
+    <div className={`min-h-full bg-slate-50 flex flex-col relative animate-in fade-in duration-500 ${isCareMode ? 'care-mode-root' : ''}`}>
+      {/* Header */}
+      <div className={`bg-white/95 backdrop-blur-xl px-6 sticky top-0 z-50 border-b border-slate-100/50 shrink-0 ${isCareMode ? 'pt-14 pb-8' : 'pt-12 pb-6'}`}>
         <div className="flex items-center justify-between mb-5">
-          <button onClick={onBack} className="p-2.5 bg-slate-100 rounded-2xl text-slate-500 active:scale-90 transition-all">
-            <ArrowLeft className="w-5 h-5" />
+          <button onClick={onBack} className={`${isCareMode ? 'p-3.5' : 'p-2.5'} bg-slate-100 rounded-2xl text-slate-500 active:scale-90 transition-all`}>
+            <ArrowLeft className={isCareMode ? "w-7 h-7" : "w-5 h-5"} />
           </button>
           <div className="flex items-center gap-3">
-             <button className="p-2.5 bg-slate-100 rounded-2xl text-slate-500"><Heart className="w-5 h-5" /></button>
-             <button className="p-2.5 bg-slate-100 rounded-2xl text-slate-500"><Share2 className="w-5 h-5" /></button>
-             <button className="p-2 bg-brand-soft rounded-2xl text-brand-core border border-brand-light">
-               <MoreHorizontal className="w-5 h-5" />
-             </button>
+             <button className={`${isCareMode ? 'p-3.5' : 'p-2.5'} bg-slate-100 rounded-2xl text-slate-500`}><Heart className={isCareMode ? "w-7 h-7" : "w-5 h-5"} /></button>
+             <button className={`${isCareMode ? 'p-3.5' : 'p-2.5'} bg-slate-100 rounded-2xl text-slate-500`}><Share2 className={isCareMode ? "w-7 h-7" : "w-5 h-5"} /></button>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-brand-soft rounded-[1.8rem] flex items-center justify-center border-4 border-white shadow-sm shrink-0">
-            <Target className="w-8 h-8 text-brand-core" />
+          <div className={`${isCareMode ? 'w-20 h-20 rounded-4xl' : 'w-16 h-16 rounded-[1.8rem]'} bg-brand-soft flex items-center justify-center border-4 border-white shadow-sm shrink-0`}>
+            <Target className={isCareMode ? "w-10 h-10 text-brand-core" : "w-8 h-8 text-brand-core"} />
           </div>
           <div className="space-y-1">
-            <h2 className="text-2xl font-black text-slate-800 tracking-tight leading-none">病情管理一页通</h2>
+            <h2 className={`${isCareMode ? 'text-3xl' : 'text-2xl'} font-black text-slate-800 tracking-tight leading-none`}>病情管理一页通</h2>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] bg-brand-dark text-white px-2 py-0.5 rounded-full font-black tracking-widest uppercase">Expert Verified</span>
               <SourceBadge level={SourceLevel.A} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* 内容区域 - 内部滚动重置 */}
+      {/* Main Content Area */}
       <div 
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-5 pt-5 pb-48 space-y-10"
+        className={`flex-1 overflow-y-auto px-5 pt-5 pb-48 space-y-10 ${isCareMode ? 'care-p' : ''}`}
       >
         {/* 1. 指南共识精要 */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
-            <ShieldCheck className="w-5 h-5 text-brand-core" />
-            <h3 className="text-base font-black text-slate-800">《指南共识》精要</h3>
+            <ShieldCheck className={isCareMode ? "w-7 h-7 text-brand-core" : "w-5 h-5 text-brand-core"} />
+            <h3 className={`${isCareMode ? 'text-2xl' : 'text-base'} font-black text-slate-800`}>《指南共识》精要</h3>
           </div>
           
-          <div className="bg-white rounded-[2.8rem] p-7 card-shadow border border-slate-100 space-y-8 relative overflow-hidden">
+          <div className={`bg-white rounded-[2.8rem] card-shadow border border-slate-100 space-y-8 relative overflow-hidden ${isCareMode ? 'p-10' : 'p-7'}`}>
             <div className="space-y-5 relative z-10">
-              <h4 className="text-sm font-black text-brand-dark flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4" /> {content.consensusTitle}
+              <h4 className={`${isCareMode ? 'text-lg' : 'text-sm'} font-black text-brand-dark flex items-center gap-2`}>
+                <CheckCircle2 className={isCareMode ? "w-6 h-6" : "w-4 h-4"} /> {content.consensusTitle}
               </h4>
               <div className="space-y-4">
                 {content.consensusPoints.map((point, i) => (
                   <div key={i} className="flex gap-4 items-start">
-                    <div className="w-6 h-6 rounded-xl bg-brand-soft text-brand-core flex items-center justify-center text-xs font-black shrink-0 mt-0.5">{i+1}</div>
-                    <p className="text-[13px] font-bold text-slate-600 leading-relaxed">{point}</p>
+                    <div className={`${isCareMode ? 'w-8 h-8 text-sm' : 'w-6 h-6 text-xs'} rounded-xl bg-brand-soft text-brand-core flex items-center justify-center font-black shrink-0 mt-0.5`}>{i+1}</div>
+                    <p className={`font-bold text-slate-600 leading-relaxed ${isCareMode ? 'text-lg' : 'text-[13px]'}`}>{point}</p>
                   </div>
                 ))}
               </div>
@@ -225,17 +222,17 @@ const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat }) => {
 
             <div className="pt-6 border-t border-slate-100 relative z-10">
               <div className="flex items-center justify-between mb-4 px-1">
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">附件资源清单</p>
-                <FileSearch className="w-4 h-4 text-slate-300" />
+                <p className={`${isCareMode ? 'text-sm' : 'text-[11px]'} font-black text-slate-400 uppercase tracking-widest`}>附件资源清单</p>
+                <FileSearch className={isCareMode ? "w-6 h-6 text-slate-300" : "w-4 h-4 text-slate-300"} />
               </div>
               <div className="grid grid-cols-1 gap-2.5">
                 {content.docs.map((doc, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl group active:scale-[0.98] transition-all cursor-pointer border border-transparent hover:border-brand-light hover:bg-white">
+                  <div key={i} className={`flex items-center justify-between bg-slate-50 rounded-2xl group active:scale-[0.98] transition-all cursor-pointer border border-transparent hover:border-brand-light hover:bg-white ${isCareMode ? 'p-6' : 'p-4'}`}>
                     <div className="flex items-center gap-3 overflow-hidden">
                       {getDocIcon(doc.type)}
-                      <span className="text-xs font-black text-slate-700 truncate">{doc.title}</span>
+                      <span className={`font-black text-slate-700 truncate ${isCareMode ? 'text-base' : 'text-xs'}`}>{doc.title}</span>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-brand-core" />
+                    <ChevronRight className={isCareMode ? "w-6 h-6 text-slate-300 group-hover:text-brand-core" : "w-4 h-4 text-slate-300 group-hover:text-brand-core"} />
                   </div>
                 ))}
               </div>
@@ -246,91 +243,32 @@ const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat }) => {
         {/* 2. 推荐阅读 */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
-            <BookOpen className="w-5 h-5 text-brand-orange" />
-            <h3 className="text-base font-black text-slate-800">推荐阅读</h3>
+            <BookOpen className={isCareMode ? "w-7 h-7 text-brand-orange" : "w-5 h-5 text-brand-orange"} />
+            <h3 className={`${isCareMode ? 'text-2xl' : 'text-base'} font-black text-slate-800`}>推荐阅读</h3>
           </div>
           <div className="grid grid-cols-1 gap-3.5">
             {content.recommendations.map((rec, i) => (
-              <div key={i} className="bg-white p-5 rounded-[2.2rem] card-shadow border border-slate-100 flex items-center justify-between group active:scale-[0.98] transition-all cursor-pointer">
+              <div key={i} className={`bg-white rounded-[2.2rem] card-shadow border border-slate-100 flex items-center justify-between group active:scale-[0.98] transition-all cursor-pointer ${isCareMode ? 'p-8' : 'p-5'}`}>
                 <div className="space-y-1.5 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] bg-brand-light text-brand-dark px-2 py-0.5 rounded-lg font-black">{rec.type}</span>
                     <SourceBadge level={rec.level} />
                   </div>
-                  <h4 className="text-[14px] font-black text-slate-800 group-hover:text-brand-dark leading-snug">{rec.title}</h4>
-                  <p className="text-[11px] text-slate-400 font-bold line-clamp-1">{rec.desc}</p>
+                  <h4 className={`font-black text-slate-800 group-hover:text-brand-dark leading-snug ${isCareMode ? 'text-xl' : 'text-[14px]'}`}>{rec.title}</h4>
+                  <p className={`${isCareMode ? 'text-sm' : 'text-[11px]'} text-slate-400 font-bold line-clamp-1`}>{rec.desc}</p>
                 </div>
-                <div className="ml-4 w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-brand-soft group-hover:text-brand-core transition-all">
-                  <ExternalLink className="w-4 h-4" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 3. 病友经验 */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-2">
-              <Heart className="w-5 h-5 text-red-400 fill-red-400" />
-              <h3 className="text-base font-black text-slate-800">病友经验</h3>
-            </div>
-          </div>
-          
-          <div className="flex gap-4 overflow-x-auto pb-4 -mx-5 px-5 scrollbar-hide">
-            {content.experiences.map((exp, i) => (
-              <div key={i} className="w-[11.5rem] shrink-0 bg-white rounded-[2.5rem] overflow-hidden card-shadow border border-slate-100 flex flex-col group active:scale-[0.98] transition-all">
-                <div className="h-[12.5rem] overflow-hidden relative">
-                  <img src={exp.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                  <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md px-2.5 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10">
-                    <Heart className="w-2.5 h-2.5 text-white fill-white" />
-                    <span className="text-[10px] text-white font-black">{exp.likes}</span>
-                  </div>
-                </div>
-                <div className="p-4.5 space-y-3.5">
-                  <h4 className="text-[13px] font-black text-slate-800 line-clamp-2 leading-tight h-[2.4rem]">{exp.title}</h4>
-                  <div className="flex items-center gap-2">
-                    <img src={exp.avatar} className="w-5 h-5 rounded-full border border-slate-100" alt="" />
-                    <span className="text-[10px] font-bold text-slate-500 truncate">{exp.author}</span>
-                  </div>
+                <div className={`${isCareMode ? 'w-14 h-14 rounded-3xl' : 'w-10 h-10 rounded-2xl'} ml-4 bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-brand-soft group-hover:text-brand-core transition-all`}>
+                  <ExternalLink className={isCareMode ? "w-6 h-6" : "w-4 h-4"} />
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* 4. 生活管理专题 */}
-        {stageId === 'quality_life' && (
-          <section className="space-y-4">
-             <div className="flex items-center gap-2 px-1">
-              <Sparkles className="w-5 h-5 text-brand-core" />
-              <h3 className="text-base font-black text-slate-800">生活管理专题</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { icon: Briefcase, label: '职场与工作', color: 'bg-blue-50 text-blue-500' },
-                { icon: Activity, label: '运动处方', color: 'bg-emerald-50 text-emerald-500' },
-                { icon: Users2, label: '亲密关系', color: 'bg-pink-50 text-pink-500' },
-                { icon: Flower2, label: '身体形象', color: 'bg-purple-50 text-purple-500' },
-                { icon: Baby, label: '生育规划', color: 'bg-orange-50 text-orange-500' },
-                { icon: PlayCircle, label: '回归路线图', color: 'bg-slate-50 text-slate-500' },
-              ].map((item, i) => (
-                <div key={i} className="bg-white p-4 rounded-3xl card-shadow border border-slate-50 flex flex-col items-center gap-2 hover:border-brand-core transition-all cursor-pointer">
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${item.color}`}>
-                    <item.icon className="w-5 h-5" />
-                  </div>
-                  <span className="text-[11px] font-black text-slate-700">{item.label}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* 5. 推荐工具 (完整的 10 项清单) */}
+        {/* 5. 推荐工具 */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
-            <Sparkles className="w-5 h-5 text-brand-orange" />
-            <h3 className="text-base font-black text-slate-800">推荐工具清单</h3>
+            <Sparkles className={isCareMode ? "w-7 h-7 text-brand-orange" : "w-5 h-5 text-brand-orange"} />
+            <h3 className={`${isCareMode ? 'text-2xl' : 'text-base'} font-black text-slate-800`}>推荐工具清单</h3>
           </div>
           <div className="grid grid-cols-1 gap-3.5">
             {TOOLS.map((tool) => (
@@ -338,22 +276,22 @@ const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat }) => {
                 key={tool.id}
                 disabled={jumpingId !== null}
                 onClick={() => handleToolClick(tool)}
-                className={`bg-white rounded-[2.2rem] p-6 flex items-center justify-between border-2 transition-all relative overflow-hidden group active:scale-[0.98] ${
+                className={`bg-white rounded-[2.2rem] flex items-center justify-between border-2 transition-all relative overflow-hidden group active:scale-[0.98] ${
                   jumpingId === tool.id ? 'border-brand-core ring-4 ring-brand-core/5' : 'border-transparent card-shadow hover:border-brand-light'
-                }`}
+                } ${isCareMode ? 'p-8' : 'p-6'}`}
               >
                 <div className="flex items-center gap-5">
-                  <div className={`w-12 h-12 rounded-[1.5rem] flex items-center justify-center transition-colors shadow-inner ${
+                  <div className={`${isCareMode ? 'w-16 h-16 rounded-[1.5rem]' : 'w-12 h-12 rounded-[1.5rem]'} flex items-center justify-center transition-colors shadow-inner ${
                     jumpingId === tool.id ? 'bg-brand-core text-white' : 'bg-slate-50 text-brand-dark'
                   }`}>
-                    {jumpingId === tool.id ? <Loader2 className="w-6 h-6 animate-spin" /> : <MessageCircle className="w-6 h-6" />}
+                    {jumpingId === tool.id ? <Loader2 className={isCareMode ? "w-8 h-8 animate-spin" : "w-6 h-6 animate-spin"} /> : <MessageCircle className={isCareMode ? "w-8 h-8" : "w-6 h-6"} />}
                   </div>
                   <div className="text-left">
-                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5">{tool.category}</p>
-                    <p className="text-[14px] font-black text-slate-800">{tool.name}</p>
+                    <p className={`${isCareMode ? 'text-xs' : 'text-[10px]'} font-black text-slate-300 uppercase tracking-widest mb-0.5`}>{tool.category}</p>
+                    <p className={`${isCareMode ? 'text-lg' : 'text-[14px]'} font-black text-slate-800`}>{tool.name}</p>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-200 group-hover:text-brand-dark" />
+                <ChevronRight className={isCareMode ? "w-7 h-7 text-slate-200 group-hover:text-brand-dark" : "w-5 h-5 text-slate-200 group-hover:text-brand-dark"} />
               </button>
             ))}
           </div>
@@ -361,24 +299,24 @@ const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat }) => {
 
         {/* 底部版权 */}
         <div className="px-10 py-10 text-center space-y-3 opacity-30">
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Medical Support Ecosystem V2.2</p>
-          <p className="text-[10px] font-bold text-slate-400 leading-relaxed">所有信源均经由平台医学顾问委员会多重审核与认证</p>
+          <p className={`${isCareMode ? 'text-xs' : 'text-[10px]'} font-black text-slate-500 uppercase tracking-[0.2em]`}>Medical Support Ecosystem V3.0</p>
+          <p className={`${isCareMode ? 'text-xs' : 'text-[10px]'} font-bold text-slate-400 leading-relaxed`}>所有信源均经由平台医学顾问委员会认证</p>
         </div>
       </div>
 
-      {/* 悬浮 AI 对话入口 */}
-      <div className="absolute bottom-24 left-6 right-6 z-[60] flex justify-center pointer-events-none">
+      {/* AI Entrance */}
+      <div className={`absolute left-6 right-6 z-[60] flex justify-center pointer-events-none ${isCareMode ? 'bottom-28' : 'bottom-24'}`}>
         <button 
           onClick={(e) => {
             e.stopPropagation();
             onGoToChat();
           }}
-          className="w-full bg-gradient-to-r from-brand-core to-brand-dark text-white py-4.5 rounded-[2.5rem] shadow-2xl shadow-brand-core/30 border-4 border-white flex items-center justify-center gap-3 active:scale-[0.97] transition-all group pointer-events-auto"
+          className={`w-full bg-gradient-to-r from-brand-core to-brand-dark text-white rounded-[2.5rem] shadow-2xl shadow-brand-core/30 border-4 border-white flex items-center justify-center gap-3 active:scale-[0.97] transition-all group pointer-events-auto ${isCareMode ? 'py-6' : 'py-4.5'}`}
         >
-          <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform">
-            <Bot className="w-5 h-5 text-white" />
+          <div className={`${isCareMode ? 'w-10 h-10 rounded-2xl' : 'w-8 h-8 rounded-xl'} bg-white/20 flex items-center justify-center group-hover:rotate-12 transition-transform`}>
+            <Bot className={isCareMode ? "w-7 h-7 text-white" : "w-5 h-5 text-white"} />
           </div>
-          <span className="text-[15px] font-black tracking-tight">针对此阶段向 AI 提问</span>
+          <span className={`${isCareMode ? 'text-xl' : 'text-[15px]'} font-black tracking-tight`}>针对此阶段向 AI 提问</span>
         </button>
       </div>
     </div>

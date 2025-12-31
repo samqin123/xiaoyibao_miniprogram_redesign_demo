@@ -58,23 +58,31 @@ const App: React.FC = () => {
   const [initialProfileTab, setInitialProfileTab] = useState<'stats' | 'posts'>('stats');
   const [shouldOpenCommunityModal, setShouldOpenCommunityModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isCareMode, setIsCareMode] = useState(false);
   
   const mainContentRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('current_user');
+    const savedCareMode = localStorage.getItem('care_mode') === 'true';
     if (savedUser) {
       setUser(JSON.parse(savedUser));
       setIsLoggedIn(true);
     }
+    setIsCareMode(savedCareMode);
   }, []);
 
-  // 全局滚动置顶逻辑：每当标签切换或详情页ID变化，强制重置滚动位置
   useEffect(() => {
     if (mainContentRef.current) {
       mainContentRef.current.scrollTop = 0;
     }
   }, [activeTab, selectedStageId]);
+
+  const toggleCareMode = () => {
+    const newVal = !isCareMode;
+    setIsCareMode(newVal);
+    localStorage.setItem('care_mode', newVal.toString());
+  };
 
   const handleLogin = () => {
     const savedQuota = localStorage.getItem('accumulated_quota');
@@ -85,7 +93,7 @@ const App: React.FC = () => {
       dailyQuota: 10,
       accumulatedQuota: savedQuota ? parseInt(savedQuota) : 47,
       learningProgress: 75,
-      badges: ['科普先锋', '持之以恒']
+      badges: ['科普先锋', '持之行恒']
     };
     setUser(newUser);
     setIsLoggedIn(true);
@@ -158,22 +166,22 @@ const App: React.FC = () => {
   if (!user) return <div className="h-screen flex items-center justify-center text-brand-dark font-bold">加载中...</div>;
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-brand-bg shadow-2xl overflow-hidden relative border-x border-slate-100">
+    <div className={`flex flex-col h-screen max-w-md mx-auto bg-brand-bg shadow-2xl overflow-hidden relative border-x border-slate-100 ${isCareMode ? 'care-mode-root' : ''}`}>
       {/* Header */}
       <header className="bg-white/90 backdrop-blur-md px-6 py-4 flex justify-between items-center sticky top-0 z-50 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <MascotAvatar />
+          <MascotAvatar size={isCareMode ? "w-14 h-14" : "w-10 h-10"} />
           <div>
-            <h1 className="text-lg font-black text-slate-800 tracking-tight leading-none">小胰宝</h1>
-            <p className="text-[9px] text-brand-dark font-black mt-1 uppercase tracking-wider">肿瘤科普 | 病友/家属科普与病情主动管理伙伴</p>
+            <h1 className={`font-black text-slate-800 tracking-tight leading-none ${isCareMode ? 'text-2xl' : 'text-lg'}`}>小胰宝</h1>
+            <p className={`${isCareMode ? 'text-[11px]' : 'text-[9px]'} text-brand-dark font-black mt-1 uppercase tracking-wider`}>肿瘤科普 | 病友科普与管理伙伴</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setShowSOS(true)}
-            className="w-10 h-10 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 transition-all hover:scale-105 border border-red-100"
+            className={`${isCareMode ? 'w-14 h-14' : 'w-10 h-10'} bg-red-50 rounded-2xl flex items-center justify-center text-red-500 transition-all hover:scale-105 border border-red-100`}
           >
-            <PhoneCall className="w-5 h-5" />
+            <PhoneCall className={isCareMode ? "w-7 h-7" : "w-5 h-5"} />
           </button>
         </div>
       </header>
@@ -186,33 +194,44 @@ const App: React.FC = () => {
               stageId={selectedStageId} 
               onBack={() => setSelectedStageId(null)} 
               onGoToChat={() => handleTabChange('chat')}
+              isCareMode={isCareMode}
             />
           ) : (
-            <RoadmapPage onSelectStage={setSelectedStageId} />
+            <RoadmapPage onSelectStage={setSelectedStageId} isCareMode={isCareMode} />
           )
         )}
-        {activeTab === 'chat' && <ChatPage user={user} onMessageSent={useQuota} onShare={() => updateQuota(10)} />}
+        {activeTab === 'chat' && <ChatPage user={user} onMessageSent={useQuota} onShare={() => updateQuota(10)} isCareMode={isCareMode} />}
         {activeTab === 'articles' && (
           <ArticlesPage 
             onGoToMyPosts={navigateToMyPosts} 
             onGoToCreatePost={navigateToCreatePost}
             onGoToCommunity={navigateToCommunity}
+            isCareMode={isCareMode}
           />
         )}
-        {activeTab === 'game' && <GamePage onPass={updateQuota} />}
+        {activeTab === 'game' && <GamePage onPass={updateQuota} isCareMode={isCareMode} />}
         {activeTab === 'community' && (
           <CommunityPage 
             onShare={() => updateQuota(5)} 
             autoOpenModal={shouldOpenCommunityModal}
             onCloseModal={() => setShouldOpenCommunityModal(false)}
             onBack={() => setActiveTab('articles')}
+            isCareMode={isCareMode}
           />
         )}
-        {activeTab === 'profile' && <ProfilePage user={user} initialTab={initialProfileTab} onLogout={handleLogout} />}
+        {activeTab === 'profile' && (
+          <ProfilePage 
+            user={user} 
+            initialTab={initialProfileTab} 
+            onLogout={handleLogout} 
+            isCareMode={isCareMode}
+            onToggleCareMode={toggleCareMode}
+          />
+        )}
         
         {/* Global Footer Disclaimer */}
         <div className="py-2.5 px-6 bg-slate-50/80 text-center border-t border-slate-100">
-          <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+          <p className={`${isCareMode ? 'text-xs' : 'text-[10px]'} text-slate-400 font-medium leading-relaxed`}>
             {DISCLAIMER}
           </p>
         </div>
@@ -222,7 +241,7 @@ const App: React.FC = () => {
       <nav className="bg-white/90 backdrop-blur-md border-t border-slate-100 px-4 py-2 flex justify-between items-center sticky bottom-0 z-50">
         {[
           { id: 'roadmap', icon: Home, label: '路线' },
-          { id: 'chat', icon: MessageCircle, label: '小胰宝' },
+          { id: 'chat', icon: MessageCircle, label: '助手' },
           { id: 'articles', icon: BookOpen, label: '科普' },
           { id: 'game', icon: Gamepad2, label: '闯关' },
           { id: 'profile', icon: UserCircle, label: '我的' },
@@ -234,8 +253,8 @@ const App: React.FC = () => {
               activeTab === tab.id ? 'text-brand-core' : 'text-slate-400'
             }`}
           >
-            <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'fill-brand-core/10' : ''}`} />
-            <span className="text-[9px] font-bold">{tab.label}</span>
+            <tab.icon className={`${isCareMode ? 'w-7 h-7' : 'w-5 h-5'} ${activeTab === tab.id ? 'fill-brand-core/10' : ''}`} />
+            <span className={`${isCareMode ? 'text-xs' : 'text-[9px]'} font-bold`}>{tab.label}</span>
           </button>
         ))}
       </nav>
@@ -257,15 +276,12 @@ const App: React.FC = () => {
             </div>
             <div className="space-y-4">
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                如果您当前感到剧烈疼痛、高热不退或呼吸困难，请立即拨打急救电话或前往就近医院。
+                如果您当前感到剧烈疼痛、高热不退或呼吸困难，请立即拨打急救电话。
               </p>
               <div className="grid grid-cols-1 gap-3">
-                <a href="tel:120" className="bg-red-500 text-white py-4 rounded-2xl flex items-center justify-center gap-2 font-black shadow-lg shadow-red-200 active:scale-95 transition-all no-underline">
+                <a href="tel:120" className="bg-red-500 text-white py-4 rounded-2xl flex items-center justify-center gap-2 font-black shadow-lg shadow-red-200 active:scale-95 transition-all no-underline care-btn-h">
                   <PhoneCall className="w-5 h-5" /> 拨打 120 急救
                 </a>
-                <button className="bg-slate-50 text-slate-600 py-4 rounded-2xl flex items-center justify-center gap-2 font-black active:scale-95 transition-all">
-                  联系我的主治医生
-                </button>
               </div>
             </div>
           </div>
@@ -273,7 +289,7 @@ const App: React.FC = () => {
       )}
 
       {/* Global Mascot */}
-      {activeTab !== 'chat' && activeTab !== 'game' && <GlobalMascot onChat={() => handleTabChange('chat')} />}
+      {activeTab !== 'chat' && activeTab !== 'game' && !isCareMode && <GlobalMascot onChat={() => handleTabChange('chat')} />}
     </div>
   );
 };
