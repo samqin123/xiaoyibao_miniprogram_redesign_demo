@@ -20,6 +20,7 @@ import ChatPage from './pages/ChatPage';
 import CommunityPage from './pages/CommunityPage';
 import ProfilePage from './pages/ProfilePage';
 import StageDetailPage from './pages/StageDetailPage';
+import LandingPage from './pages/LandingPage';
 import { DISCLAIMER } from './constants';
 
 const MascotAvatar: React.FC<{ size?: string, className?: string }> = ({ size = "w-10 h-10", className = "" }) => (
@@ -55,10 +56,20 @@ const App: React.FC = () => {
   const [showSOS, setShowSOS] = useState(false);
   const [initialProfileTab, setInitialProfileTab] = useState<'stats' | 'posts'>('stats');
   const [shouldOpenCommunityModal, setShouldOpenCommunityModal] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
+    // Check if user session exists in local storage
+    const savedUser = localStorage.getItem('current_user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+  const handleLogin = () => {
     const savedQuota = localStorage.getItem('accumulated_quota');
-    setUser({
+    const newUser: User = {
       id: 'mock-123',
       username: '莘花',
       identity: IdentityTag.PATIENT,
@@ -66,23 +77,39 @@ const App: React.FC = () => {
       accumulatedQuota: savedQuota ? parseInt(savedQuota) : 47,
       learningProgress: 75,
       badges: ['科普先锋', '持之以恒']
-    });
-  }, []);
+    };
+    setUser(newUser);
+    setIsLoggedIn(true);
+    localStorage.setItem('current_user', JSON.stringify(newUser));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setIsLoggedIn(false);
+    localStorage.removeItem('current_user');
+  };
 
   const updateQuota = (amount: number) => {
     if (!user) return;
     const newAccumulated = user.accumulatedQuota + amount;
-    setUser({ ...user, accumulatedQuota: newAccumulated });
+    const updatedUser = { ...user, accumulatedQuota: newAccumulated };
+    setUser(updatedUser);
     localStorage.setItem('accumulated_quota', newAccumulated.toString());
+    localStorage.setItem('current_user', JSON.stringify(updatedUser));
   };
 
   const useQuota = () => {
     if (!user) return false;
+    let updatedUser: User | null = null;
     if (user.dailyQuota > 0) {
-      setUser({ ...user, dailyQuota: user.dailyQuota - 1 });
-      return true;
+      updatedUser = { ...user, dailyQuota: user.dailyQuota - 1 };
     } else if (user.accumulatedQuota > 0) {
-      setUser({ ...user, accumulatedQuota: user.accumulatedQuota - 1 });
+      updatedUser = { ...user, accumulatedQuota: user.accumulatedQuota - 1 };
+    }
+
+    if (updatedUser) {
+      setUser(updatedUser);
+      localStorage.setItem('current_user', JSON.stringify(updatedUser));
       return true;
     }
     return false;
@@ -110,6 +137,10 @@ const App: React.FC = () => {
     setShouldOpenCommunityModal(true);
     setActiveTab('community');
   };
+
+  if (!isLoggedIn) {
+    return <LandingPage onLogin={handleLogin} />;
+  }
 
   if (!user) return <div className="h-screen flex items-center justify-center text-brand-dark font-bold">加载中...</div>;
 
@@ -162,7 +193,7 @@ const App: React.FC = () => {
             onCloseModal={() => setShouldOpenCommunityModal(false)}
           />
         )}
-        {activeTab === 'profile' && <ProfilePage user={user} initialTab={initialProfileTab} />}
+        {activeTab === 'profile' && <ProfilePage user={user} initialTab={initialProfileTab} onLogout={handleLogout} />}
         
         {/* Global Footer Disclaimer */}
         <div className="py-2.5 px-6 bg-slate-50/80 text-center border-t border-slate-100/50">

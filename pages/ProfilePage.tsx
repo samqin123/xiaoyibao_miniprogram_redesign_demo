@@ -18,25 +18,25 @@ import {
   AlertCircle,
   CheckCircle,
   Eye,
-  MessageCircle
+  MessageCircle,
+  LogOut
 } from 'lucide-react';
 
 interface Props {
   user: User;
   initialTab?: 'stats' | 'posts';
+  onLogout?: () => void;
 }
 
-const ProfilePage: React.FC<Props> = ({ user, initialTab = 'stats' }) => {
+const ProfilePage: React.FC<Props> = ({ user, initialTab = 'stats', onLogout }) => {
   const [activeSubTab, setActiveSubTab] = useState<'stats' | 'posts'>(initialTab);
   const [myPosts, setMyPosts] = useState<ForumPost[]>([]);
 
   useEffect(() => {
-    // 监听 initialTab 变化
     setActiveSubTab(initialTab);
   }, [initialTab]);
 
   useEffect(() => {
-    // Load posts from local storage or mock them
     const localPosts = JSON.parse(localStorage.getItem('my_posts') || '[]');
     setMyPosts(localPosts);
   }, []);
@@ -44,7 +44,14 @@ const ProfilePage: React.FC<Props> = ({ user, initialTab = 'stats' }) => {
   return (
     <div className="min-h-full bg-[#F2F9F6] pb-32">
       {/* Top Profile Header */}
-      <div className="p-8 pt-16 text-center space-y-6 bg-white rounded-b-[3rem] shadow-sm">
+      <div className="p-8 pt-16 text-center space-y-6 bg-white rounded-b-[3rem] shadow-sm relative">
+        <button 
+          onClick={onLogout}
+          className="absolute top-6 right-6 p-2 bg-slate-50 rounded-xl text-slate-400 active:scale-95 transition-all"
+        >
+          <LogOut className="w-4 h-4" />
+        </button>
+        
         <div className="relative inline-block">
           <div className="w-28 h-28 rounded-[2rem] border-4 border-white shadow-2xl overflow-hidden bg-white mx-auto">
             <img 
@@ -214,8 +221,11 @@ const ProfilePage: React.FC<Props> = ({ user, initialTab = 'stats' }) => {
 
       {/* Logout etc */}
       <div className="px-6 mt-10">
-        <button className="w-full py-4 bg-white border border-red-100 rounded-2xl text-[11px] font-black text-red-400 flex items-center justify-center gap-2 hover:bg-red-50 transition-all">
-          <Trash2 className="w-4 h-4" /> 注销当前账号
+        <button 
+          onClick={onLogout}
+          className="w-full py-4 bg-white border border-red-100 rounded-2xl text-[11px] font-black text-red-400 flex items-center justify-center gap-2 hover:bg-red-50 transition-all"
+        >
+          <LogOut className="w-4 h-4" /> 退出登录
         </button>
       </div>
     </div>
