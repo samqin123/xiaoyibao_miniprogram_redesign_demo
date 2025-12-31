@@ -3,6 +3,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob } from '@google/genai';
 import { Mic, Bot, Loader2, Sparkles, X, Volume2, Info, ChevronLeft, UserCheck, Heart } from 'lucide-react';
 
+// 吉祥物图片路径 - 使用新的 HTTPS 链接
+const MASCOT_IMG = "https://picgo-1302991947.cos.ap-guangzhou.myqcloud.com/images/logo_512_image.png";
+
 // --- Manual Implementation of required functions as per instructions ---
 function encode(bytes: Uint8Array) {
   let binary = '';
@@ -54,7 +57,6 @@ function createBlob(data: Float32Array): Blob {
   };
 }
 
-// 语音助手专用提示词：友好亲切、完整简洁、极简风险提示
 const VOICE_SYSTEM_INSTRUCTION = `你现在是“小胰宝”实时语音科普助手。
 核心表达风格：
 1. 友好、亲切、富有同理心，语气温润且富有鼓励性。
@@ -79,7 +81,6 @@ const VoiceAssistantPage: React.FC<Props> = ({ isCareMode, onBack }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedVoice, setSelectedVoice] = useState(VOICE_OPTIONS[0]);
   
-  // Audio references
   const inputAudioContextRef = useRef<AudioContext | null>(null);
   const outputAudioContextRef = useRef<AudioContext | null>(null);
   const nextStartTimeRef = useRef<number>(0);
@@ -163,7 +164,6 @@ const VoiceAssistantPage: React.FC<Props> = ({ isCareMode, onBack }) => {
             scriptProcessor.connect(inputCtx.destination);
           },
           onmessage: async (message: LiveServerMessage) => {
-            // Handle Model Interruption
             if (message.serverContent?.interrupted) {
               clearAllSources();
               setStatus('listening');
@@ -203,7 +203,6 @@ const VoiceAssistantPage: React.FC<Props> = ({ isCareMode, onBack }) => {
             }
           },
           onerror: (e: any) => {
-            console.error('Gemini Live error:', e);
             setStatus('error');
             setErrorMessage('连接异常，请检查网络或麦克风。');
           },
@@ -223,7 +222,6 @@ const VoiceAssistantPage: React.FC<Props> = ({ isCareMode, onBack }) => {
       sessionRef.current = await sessionPromise;
 
     } catch (err) {
-      console.error('Failed to start voice session:', err);
       setStatus('error');
       setErrorMessage('无法访问麦克风。');
       stopSession();
@@ -238,7 +236,6 @@ const VoiceAssistantPage: React.FC<Props> = ({ isCareMode, onBack }) => {
     }
   };
 
-  // Manual Interruption Trigger
   const handleMascotClick = () => {
     if (status === 'speaking') {
       clearAllSources();
@@ -262,7 +259,7 @@ const VoiceAssistantPage: React.FC<Props> = ({ isCareMode, onBack }) => {
         </button>
       </div>
 
-      {/* Visual Indicator - Mascot with Breathing Light Style */}
+      {/* Visual Indicator */}
       <div className="relative py-8 flex flex-col items-center justify-center">
         {/* Breathing Light Layers */}
         {(status === 'listening' || status === 'speaking' || status === 'connecting') && (
@@ -275,23 +272,23 @@ const VoiceAssistantPage: React.FC<Props> = ({ isCareMode, onBack }) => {
           </>
         )}
 
-        {/* Circular Mascot Container */}
+        {/* Square Mascot Container */}
         <div 
           onClick={handleMascotClick}
-          className={`group cursor-pointer ${isCareMode ? 'w-52 h-52' : 'w-44 h-44'} bg-white rounded-full flex items-center justify-center shadow-2xl relative p-4 mascot-float transition-all hover:scale-105 active:scale-95 hover:ring-8 hover:ring-brand-core/5`}
+          className={`group cursor-pointer ${isCareMode ? 'w-52 h-52' : 'w-44 h-44'} bg-white rounded-[2.5rem] flex items-center justify-center shadow-2xl relative p-4 mascot-float transition-all hover:scale-105 active:scale-95 hover:ring-8 hover:ring-brand-core/5`}
         >
-          <div className={`w-full h-full bg-gradient-to-br from-brand-core to-brand-dark rounded-full flex items-center justify-center relative overflow-hidden transition-all duration-500 ${status === 'speaking' ? 'scale-110 shadow-lg shadow-brand-core/20' : ''}`}>
-            <Bot className={isCareMode ? "w-24 h-24 text-white" : "w-20 h-20 text-white"} />
-            <div className={`absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity ${status === 'speaking' ? 'opacity-20' : ''}`}></div>
+          <div className={`w-full h-full bg-brand-soft rounded-[2rem] flex items-center justify-center relative overflow-hidden transition-all duration-500 ${status === 'speaking' ? 'scale-110 shadow-lg shadow-brand-core/20' : ''}`}>
+            <img src={MASCOT_IMG} alt="小胰宝" className="w-full h-full object-contain" />
+            <div className={`absolute inset-0 bg-brand-core/5 opacity-0 group-hover:opacity-100 transition-opacity ${status === 'speaking' ? 'opacity-20' : ''}`}></div>
             
-            {/* Pulsing Audio Lines (Only when speaking) */}
+            {/* Pulsing Audio Lines */}
             {status === 'speaking' && (
               <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-1.5 px-2">
-                <div className="w-1 h-6 bg-white/60 rounded-full animate-[bounce_0.6s_ease-in-out_infinite] delay-75"></div>
-                <div className="w-1 h-10 bg-white rounded-full animate-[bounce_0.8s_ease-in-out_infinite]"></div>
-                <div className="w-1 h-8 bg-white/80 rounded-full animate-[bounce_0.5s_ease-in-out_infinite] delay-150"></div>
-                <div className="w-1 h-10 bg-white rounded-full animate-[bounce_0.7s_ease-in-out_infinite] delay-300"></div>
-                <div className="w-1 h-6 bg-white/60 rounded-full animate-[bounce_0.6s_ease-in-out_infinite] delay-450"></div>
+                <div className="w-1 h-6 bg-brand-core/60 rounded-full animate-[bounce_0.6s_ease-in-out_infinite] delay-75"></div>
+                <div className="w-1 h-10 bg-brand-core rounded-full animate-[bounce_0.8s_ease-in-out_infinite]"></div>
+                <div className="w-1 h-8 bg-brand-core/80 rounded-full animate-[bounce_0.5s_ease-in-out_infinite] delay-150"></div>
+                <div className="w-1 h-10 bg-brand-core rounded-full animate-[bounce_0.7s_ease-in-out_infinite] delay-300"></div>
+                <div className="w-1 h-6 bg-brand-core/60 rounded-full animate-[bounce_0.6s_ease-in-out_infinite] delay-450"></div>
               </div>
             )}
           </div>

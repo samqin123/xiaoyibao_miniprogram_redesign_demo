@@ -4,9 +4,12 @@ import { Send, User as UserIcon, AlertCircle, Share2, Sparkles, Loader2, Bot, He
 import { User } from '../types';
 import { getGeminiResponse } from '../services/geminiService';
 
+// 吉祥物图片路径 - 使用新的 HTTPS 链接
+const MASCOT_IMG = "https://picgo-1302991947.cos.ap-guangzhou.myqcloud.com/images/logo_512_image.png";
+
 const MascotAvatar: React.FC<{ className?: string, isCareMode?: boolean }> = ({ className = "w-10 h-10", isCareMode }) => (
-  <div className={`${isCareMode ? 'w-14 h-14' : className} bg-gradient-to-br from-brand-core to-brand-dark rounded-full flex items-center justify-center relative shadow-sm border-2 border-white mascot-float`}>
-    <Bot className="w-1/2 h-1/2 text-white" />
+  <div className={`${isCareMode ? 'w-14 h-14' : className} bg-brand-soft rounded-2xl flex items-center justify-center relative shadow-sm border-2 border-white mascot-float`}>
+    <img src={MASCOT_IMG} alt="小胰宝" className="w-[85%] h-[85%] object-contain" />
     <div className="absolute -top-1 -right-1">
       <Heart className="w-3 h-3 text-brand-orange fill-brand-orange" />
     </div>
@@ -90,7 +93,7 @@ const ChatPage: React.FC<Props> = ({ user, onMessageSent, onShare, onGoToVoice, 
           </div>
           <div className="flex-1 flex flex-col items-center">
             <span className={`${isCareMode ? 'text-xs' : 'text-[9px]'} text-slate-400 font-black mb-1 uppercase tracking-wider`}>永久奖励</span>
-            <div className={`${isCareMode ? 'text-2xl' : 'text-xl'} font-black text-brand-dark leading-none`}>{user.accumulatedQuota}</div>
+            <div className={`${isCareMode ? 'text-2xl' : 'text-xl'} font-black text-brand-dark`}>{user.accumulatedQuota}</div>
           </div>
         </div>
       </div>
@@ -103,11 +106,11 @@ const ChatPage: React.FC<Props> = ({ user, onMessageSent, onShare, onGoToVoice, 
                {/* Clickable Mascot - Triggers Voice Assistant */}
                <div 
                  onClick={onGoToVoice}
-                 className={`group cursor-pointer ${isCareMode ? 'w-44 h-44' : 'w-36 h-36'} bg-white rounded-full flex items-center justify-center shadow-2xl relative p-4 mascot-float transition-all hover:scale-110 active:scale-95 hover:ring-8 hover:ring-brand-core/5`}
+                 className={`group cursor-pointer ${isCareMode ? 'w-44 h-44' : 'w-36 h-36'} bg-white rounded-[2.5rem] flex items-center justify-center shadow-2xl relative p-2 mascot-float transition-all hover:scale-110 active:scale-95 hover:ring-8 hover:ring-brand-core/5`}
                >
-                 <div className="w-full h-full bg-brand-core rounded-full flex items-center justify-center relative overflow-hidden">
-                   <Bot className={isCareMode ? "w-22 h-22 text-white" : "w-18 h-18 text-white"} />
-                   <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                 <div className="w-full h-full bg-brand-soft rounded-[2rem] flex items-center justify-center relative overflow-hidden">
+                   <img src={MASCOT_IMG} alt="小胰宝" className="w-full h-full object-contain" />
+                   <div className="absolute inset-0 bg-brand-core/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                  </div>
                  {/* Voice Tag Decor */}
                  <div className="absolute -bottom-2 right-2 bg-brand-orange text-white p-2 rounded-xl shadow-lg border-2 border-white animate-bounce-subtle">
@@ -115,7 +118,7 @@ const ChatPage: React.FC<Props> = ({ user, onMessageSent, onShare, onGoToVoice, 
                  </div>
                </div>
                <p className={`${isCareMode ? 'text-sm' : 'text-[10px]'} font-black text-brand-core uppercase tracking-widest bg-brand-light px-4 py-1.5 rounded-full animate-pulse`}>
-                 点击开启语音通话
+                 点击开启实时通话
                </p>
             </div>
             <div className="space-y-2 px-8">
@@ -155,8 +158,8 @@ const ChatPage: React.FC<Props> = ({ user, onMessageSent, onShare, onGoToVoice, 
         {loading && (
           <div className="flex justify-start">
             <div className="flex gap-3">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0 animate-bounce shadow-sm border-2 border-brand-light">
-                <Bot className="w-5 h-5 text-brand-core" />
+              <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shrink-0 animate-bounce shadow-sm border-2 border-brand-light overflow-hidden">
+                <img src={MASCOT_IMG} alt="" className="w-full h-full object-contain" />
               </div>
               <div className={`bg-white/60 border border-brand-light px-5 py-3 rounded-[2rem] rounded-tl-none text-slate-400 font-black flex items-center gap-2 ${isCareMode ? 'text-sm' : 'text-[11px]'}`}>
                 <Loader2 className="w-3 h-3 animate-spin text-brand-core" /> 
@@ -168,7 +171,7 @@ const ChatPage: React.FC<Props> = ({ user, onMessageSent, onShare, onGoToVoice, 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area - Reduced padding from p-6 to p-4 pt-2 */}
+      {/* Input Area */}
       <div className={`p-4 pt-2 bg-white border-t border-slate-50 rounded-t-[3rem] ${isCareMode ? 'care-p' : ''}`}>
         {/* Recommended Questions */}
         {!loading && (
@@ -205,7 +208,7 @@ const ChatPage: React.FC<Props> = ({ user, onMessageSent, onShare, onGoToVoice, 
                   isCareMode ? 'py-6 text-lg' : 'py-5 text-sm'
                 }`}
               />
-              {/* Internal Voice Trigger - Modern Circular Design */}
+              {/* Internal Voice Trigger */}
               <button
                 onClick={onGoToVoice}
                 className={`absolute right-2 bg-white rounded-full flex items-center justify-center text-slate-400 hover:text-brand-core hover:bg-brand-light transition-all shadow-sm ${

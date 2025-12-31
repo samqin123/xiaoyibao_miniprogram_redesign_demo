@@ -25,31 +25,34 @@ import StageDetailPage from './pages/StageDetailPage';
 import LandingPage from './pages/LandingPage';
 import VoiceAssistantPage from './pages/VoiceAssistantPage';
 
+// 吉祥物图片路径 - 使用新的 HTTPS 链接以确保跨域和安全加载
+const MASCOT_IMG = "https://picgo-1302991947.cos.ap-guangzhou.myqcloud.com/images/logo_512_image.png";
+
 const MascotAvatar: React.FC<{ size?: string, className?: string }> = ({ size = "w-10 h-10", className = "" }) => (
-  <div className={`${size} bg-gradient-to-br from-brand-core to-brand-dark rounded-full flex items-center justify-center relative shadow-sm border-2 border-white ${className}`}>
-    <Bot className="w-1/2 h-1/2 text-white" />
+  <div className={`${size} bg-brand-soft rounded-2xl flex items-center justify-center relative shadow-sm border-2 border-white ${className}`}>
+    <img src={MASCOT_IMG} alt="小胰宝" className="w-[85%] h-[85%] object-contain" />
     <div className="absolute -top-1 -right-1">
       <Heart className="w-3 h-3 text-brand-orange fill-brand-orange" />
     </div>
   </div>
 );
 
-const GlobalMascot: React.FC<{ onChat: () => void }> = ({ onChat }) => (
+const GlobalMascot: React.FC<{ onNavigateToChat: () => void }> = ({ onNavigateToChat }) => (
   <div className="absolute bottom-24 right-6 z-[60] flex flex-col items-center gap-1 group pointer-events-none transition-transform duration-300">
     <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-xl border border-brand-light opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1.5">
       <div className="w-2 h-2 bg-brand-core rounded-full animate-pulse"></div>
-      <p className="text-[10px] font-black text-brand-dark whitespace-nowrap">开启实时语音通话</p>
+      <p className="text-[10px] font-black text-brand-dark whitespace-nowrap">咨询 AI 小胰宝</p>
     </div>
     <div 
-      onClick={onChat}
-      className="pointer-events-auto bg-gradient-to-br from-brand-core to-brand-dark w-14 h-14 rounded-2xl flex flex-col items-center justify-center relative shadow-2xl border-4 border-white cursor-pointer hover:scale-110 active:scale-95 transition-all mascot-float"
+      onClick={onNavigateToChat}
+      className="pointer-events-auto bg-white w-16 h-16 rounded-[1.5rem] flex flex-col items-center justify-center relative shadow-2xl border-4 border-white cursor-pointer hover:scale-110 active:scale-95 transition-all mascot-float overflow-hidden"
     >
-      <Bot className="w-7 h-7 text-white" />
-      <div className="absolute -top-2 -right-2">
-        <Mic className="w-5 h-5 text-brand-orange fill-white p-1 rounded-full bg-brand-orange shadow-sm" />
+      <img src={MASCOT_IMG} alt="小胰宝" className="w-full h-full object-contain" />
+      <div className="absolute top-1 right-1">
+        <MessageCircle className="w-4 h-4 text-brand-core fill-white p-0.5 rounded-full bg-white shadow-sm border border-brand-light" />
       </div>
     </div>
-    <p className="text-[8px] font-bold text-slate-400 mt-1 uppercase tracking-tighter opacity-60">点击语音通话</p>
+    <p className="text-[8px] font-bold text-slate-400 mt-1 uppercase tracking-tighter opacity-60">智能助手</p>
   </div>
 );
 
@@ -193,14 +196,14 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content Area - Completely removed pb-4 */}
+      {/* Main Content Area */}
       <main ref={mainContentRef} className="flex-1 overflow-y-auto pb-0 scroll-smooth relative">
         {activeTab === 'roadmap' && (
           selectedStageId ? (
             <StageDetailPage 
               stageId={selectedStageId} 
               onBack={() => setSelectedStageId(null)} 
-              onGoToChat={() => handleTabChange('voice')}
+              onGoToChat={() => handleTabChange('chat')}
               isCareMode={isCareMode}
             />
           ) : (
@@ -238,7 +241,7 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* Persistent Footer Disclaimer - Minimal gap and clear single line text */}
+      {/* Persistent Footer Disclaimer */}
       <div className="px-6 py-0.5 bg-white/40 backdrop-blur-sm text-center">
         <p className={`${isCareMode ? 'text-[13px]' : 'text-[11px]'} text-slate-400 font-bold whitespace-nowrap overflow-hidden text-ellipsis select-none pointer-events-none`}>
           ⚠️ 声明：内容仅供科普参考，不作医疗建议，就医请遵医嘱。
@@ -296,8 +299,10 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Global Mascot - Triggers voice mode */}
-      {activeTab !== 'chat' && activeTab !== 'voice' && activeTab !== 'game' && !isCareMode && <GlobalMascot onChat={onGoToVoice} />}
+      {/* Global Mascot - Triggers Navigation to Chat */}
+      {activeTab !== 'chat' && activeTab !== 'voice' && activeTab !== 'game' && !isCareMode && (
+        <GlobalMascot onNavigateToChat={() => handleTabChange('chat')} />
+      )}
     </div>
   );
 };

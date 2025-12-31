@@ -11,6 +11,9 @@ import {
 import SourceBadge from '../components/SourceBadge';
 import { SourceLevel } from '../types';
 
+// 吉祥物图片路径 - 使用新的 HTTPS 链接
+const MASCOT_IMG = "https://picgo-1302991947.cos.ap-guangzhou.myqcloud.com/images/logo_512_image.png";
+
 interface Tool {
   id: string;
   name: string;
@@ -313,8 +316,8 @@ const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat, isCareM
           }}
           className={`w-full bg-gradient-to-r from-brand-core to-brand-dark text-white rounded-[2.5rem] shadow-2xl shadow-brand-core/30 border-4 border-white flex items-center justify-center gap-3 active:scale-[0.97] transition-all group pointer-events-auto ${isCareMode ? 'py-6' : 'py-4.5'}`}
         >
-          <div className={`${isCareMode ? 'w-10 h-10 rounded-2xl' : 'w-8 h-8 rounded-xl'} bg-white/20 flex items-center justify-center group-hover:rotate-12 transition-transform`}>
-            <Bot className={isCareMode ? "w-7 h-7 text-white" : "w-5 h-5 text-white"} />
+          <div className={`${isCareMode ? 'w-10 h-10 rounded-xl' : 'w-8 h-8 rounded-lg'} bg-white flex items-center justify-center group-hover:rotate-12 transition-transform overflow-hidden p-0.5 shadow-inner`}>
+            <img src={MASCOT_IMG} alt="" className="w-full h-full object-contain" />
           </div>
           <span className={`${isCareMode ? 'text-xl' : 'text-[15px]'} font-black tracking-tight`}>针对此阶段向 AI 提问</span>
         </button>

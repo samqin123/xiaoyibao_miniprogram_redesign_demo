@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { 
-  Bot, 
   Sparkles, 
   Heart, 
   Mail, 
@@ -16,6 +15,9 @@ import {
 interface Props {
   onLogin: () => void;
 }
+
+// 吉祥物图片路径 - 使用新的 HTTPS 链接
+const MASCOT_IMG = "https://picgo-1302991947.cos.ap-guangzhou.myqcloud.com/images/logo_512_image.png";
 
 const LandingPage: React.FC<Props> = ({ onLogin }) => {
   const [copied, setCopied] = useState(false);
@@ -38,9 +40,9 @@ const LandingPage: React.FC<Props> = ({ onLogin }) => {
       <div className="w-full flex-1 flex flex-col items-center justify-center space-y-12 animate-fade-in-up">
         {/* Logo/Mascot Area */}
         <div className="relative">
-          <div className="w-32 h-32 bg-white rounded-[2.5rem] shadow-2xl flex items-center justify-center mascot-float border-2 border-brand-light">
-            <div className="w-24 h-24 bg-gradient-to-br from-brand-core to-brand-dark rounded-[2rem] flex items-center justify-center">
-              <Bot className="w-12 h-12 text-white" />
+          <div className="w-32 h-32 bg-white rounded-[2.5rem] shadow-2xl flex items-center justify-center mascot-float border-2 border-brand-light overflow-hidden">
+            <div className="w-full h-full bg-brand-soft flex items-center justify-center relative">
+              <img src={MASCOT_IMG} alt="小胰宝" className="w-full h-full object-contain" />
             </div>
             <div className="absolute -top-3 -right-3">
               <Sparkles className="w-10 h-10 text-brand-orange fill-brand-orange" />
@@ -55,8 +57,8 @@ const LandingPage: React.FC<Props> = ({ onLogin }) => {
         {/* Branding */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Pancrepal 小胰宝</h1>
-          <p className="text-sm font-bold text-slate-400 leading-relaxed px-6">
-            您的个人化肿瘤科普与病情主动管理伙伴
+          <p className="text-sm font-bold text-slate-500 leading-relaxed px-6">
+            肿瘤病友/家属科普与病情主动管理伙伴
           </p>
         </div>
 
