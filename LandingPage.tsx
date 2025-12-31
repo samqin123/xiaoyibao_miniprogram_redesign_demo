@@ -55,8 +55,8 @@ const LandingPage: React.FC<Props> = ({ onLogin }) => {
         {/* Branding */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Pancrepal 小胰宝</h1>
-          <p className="text-sm font-bold text-slate-400 leading-relaxed px-6">
-            肿瘤科普 | 病友/家属科普与病情主动管理伙伴
+          <p className="text-sm font-bold text-slate-500 leading-relaxed px-6">
+            肿瘤病友/家属科普与病情主动管理伙伴
           </p>
         </div>
 

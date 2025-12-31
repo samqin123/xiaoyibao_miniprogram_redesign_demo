@@ -93,7 +93,7 @@ const App: React.FC = () => {
       dailyQuota: 10,
       accumulatedQuota: savedQuota ? parseInt(savedQuota) : 47,
       learningProgress: 75,
-      badges: ['科普先锋', '持之行恒']
+      badges: ['科普先锋', '持之以恒']
     };
     setUser(newUser);
     setIsLoggedIn(true);
@@ -173,7 +173,7 @@ const App: React.FC = () => {
           <MascotAvatar size={isCareMode ? "w-14 h-14" : "w-10 h-10"} />
           <div>
             <h1 className={`font-black text-slate-800 tracking-tight leading-none ${isCareMode ? 'text-2xl' : 'text-lg'}`}>小胰宝</h1>
-            <p className={`${isCareMode ? 'text-[11px]' : 'text-[9px]'} text-brand-dark font-black mt-1 uppercase tracking-wider`}>肿瘤科普 | 病友科普与管理伙伴</p>
+            <p className={`${isCareMode ? 'text-[11px]' : 'text-[9px]'} text-brand-dark font-black mt-1 uppercase tracking-wider`}>肿瘤病友/家属科普与病情主动管理伙伴</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
