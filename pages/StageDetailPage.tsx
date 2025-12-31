@@ -1,6 +1,5 @@
 
 import React from 'react';
-// Added Bot to the import list to fix "Cannot find name 'Bot'" error
 import { ArrowLeft, MessageCircle, ExternalLink, Users, BookMarked, Globe, Bot } from 'lucide-react';
 import { ROADMAP_DATA } from '../constants';
 
@@ -12,10 +11,16 @@ interface Tool {
 }
 
 const TOOLS: Tool[] = [
-  { name: 'KnowS', category: '医学知识库', link: '#', isMiniApp: true },
-  { name: '肿瘤治疗指南', category: '诊疗规范', link: '#', isMiniApp: true },
-  { name: '临床试验招募', category: '临床试验', link: '#', isMiniApp: true },
-  { name: '腾讯医典', category: '用药管理', link: '#', isMiniApp: true },
+  { name: 'KnowS', category: '医学知识库', link: 'weixin://dl/business/?ticket=h6qI3Qo3szICbOv', isMiniApp: true },
+  { name: 'KnowS AI-MDT', category: '医学知识库', link: 'https://www.medknows.com', isMiniApp: false },
+  { name: '肿瘤治疗指南（CSCO）', category: '诊疗规范', link: 'weixin://dl/business/?ticket=tQPA9yMnaHw2nNF', isMiniApp: true },
+  { name: 'get 笔记', category: '医学知识库', link: 'weixin://dl/business/?ticket=GU8kI2NDuwTaoVh', isMiniApp: true },
+  { name: '临床试验患者招募', category: '临床试验', link: 'weixin://dl/business/?ticket=aT99anZZ7d8KK2F', isMiniApp: true },
+  { name: '摩熵医药', category: '临床试验', link: 'weixin://dl/business/?ticket=NCOFxNZrRrczr9n', isMiniApp: true },
+  { name: '腾讯医典', category: '用药管理', link: 'weixin://dl/business/?ticket=HfxbmJt2oDNDkxs', isMiniApp: true },
+  { name: '丁香园 - 用药助手', category: '用药管理', link: 'weixin://dl/business/?ticket=8BZMb54pPfnjlRF', isMiniApp: true },
+  { name: '薄荷健康', category: '营养管理', link: 'weixin://dl/business/?ticket=6ljDQeZOrhwFBJo', isMiniApp: true },
+  { name: '国家异地就医备案', category: '就医政策', link: 'weixin://dl/business/?ticket=57XmlrDkXaoc1uj', isMiniApp: true },
 ];
 
 interface Props {
@@ -96,19 +101,24 @@ const StageDetailPage: React.FC<Props> = ({ stageId, onBack, onGoToChat }) => {
                 key={idx}
                 className="bg-white rounded-2xl border border-slate-100 p-4 flex items-center justify-between group shadow-sm"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center">
+                <div className="flex items-center gap-4 flex-1 pr-2">
+                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center shrink-0">
                     {tool.isMiniApp ? <MessageCircle className="w-5 h-5 text-emerald-500" /> : <Globe className="w-5 h-5 text-blue-500" />}
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">{tool.name}</h4>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-bold text-slate-800 truncate">{tool.name}</h4>
                     <p className="text-[10px] text-slate-400 font-medium">{tool.category}</p>
                   </div>
                 </div>
-                <button className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-full hover:bg-brand-dark hover:text-white transition-all">
+                <a 
+                  href={tool.link} 
+                  target={tool.isMiniApp ? "_self" : "_blank"} 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-full hover:bg-brand-dark hover:text-white transition-all shrink-0 no-underline"
+                >
                   <span className="text-[10px] font-bold">前往</span>
                   <ExternalLink className="w-3 h-3" />
-                </button>
+                </a>
               </div>
             ))}
           </div>

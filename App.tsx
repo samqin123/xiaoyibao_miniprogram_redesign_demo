@@ -1,4 +1,5 @@
 
+// Complete the App component and ensure default export exists
 import React, { useState, useEffect } from 'react';
 import { 
   Home, 
@@ -10,7 +11,8 @@ import {
   X,
   Bot,
   Heart,
-  Sparkles
+  Sparkles,
+  Users
 } from 'lucide-react';
 import { IdentityTag, User } from './types';
 import RoadmapPage from './pages/RoadmapPage';
@@ -152,7 +154,7 @@ const App: React.FC = () => {
           <MascotAvatar />
           <div>
             <h1 className="text-lg font-black text-slate-800 tracking-tight leading-none">小胰宝</h1>
-            <p className="text-[10px] text-brand-dark font-black mt-1 uppercase tracking-wider">患者病情管理AI伙伴</p>
+            <p className="text-[9px] text-brand-dark font-black mt-1 uppercase tracking-wider">肿瘤科普与病情主动管理伙伴</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -196,65 +198,70 @@ const App: React.FC = () => {
         {activeTab === 'profile' && <ProfilePage user={user} initialTab={initialProfileTab} onLogout={handleLogout} />}
         
         {/* Global Footer Disclaimer */}
-        <div className="py-2.5 px-6 bg-slate-50/80 text-center border-t border-slate-100/50">
-          <p className="text-[9px] text-slate-400 font-bold leading-tight uppercase tracking-tighter">{DISCLAIMER}</p>
-          <div className="mt-1 flex justify-center opacity-10 grayscale">
-            <Bot className="w-3 h-3" />
-          </div>
+        <div className="py-2.5 px-6 bg-slate-50/80 text-center border-t border-slate-100">
+          <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+            {DISCLAIMER}
+          </p>
         </div>
       </main>
 
-      {/* Global Mascot Icon */}
-      {activeTab !== 'chat' && <GlobalMascot onChat={() => handleTabChange('chat')} />}
-
       {/* Navigation Bar */}
-      <nav className="absolute bottom-0 left-0 right-0 glass-nav px-4 py-3 flex justify-around items-center z-[70]">
+      <nav className="bg-white/90 backdrop-blur-md border-t border-slate-100 px-4 py-2 flex justify-between items-center sticky bottom-0 z-50">
         {[
-          { id: 'roadmap', icon: Home, label: '首页' },
-          { id: 'chat', icon: MessageCircle, label: 'AI助手' },
-          { id: 'articles', icon: BookOpen, label: '资讯' },
+          { id: 'roadmap', icon: Home, label: '路线' },
+          { id: 'chat', icon: MessageCircle, label: '小胰宝' },
+          { id: 'articles', icon: BookOpen, label: '科普' },
           { id: 'game', icon: Gamepad2, label: '闯关' },
-          { id: 'profile', icon: UserCircle, label: '我的' }
+          { id: 'community', icon: Users, label: '社区' },
+          { id: 'profile', icon: UserCircle, label: '我的' },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => handleTabChange(tab.id)}
-            className={`flex flex-col items-center px-4 py-2 rounded-2xl transition-all duration-300 ${
-              activeTab === tab.id 
-                ? 'text-brand-dark bg-brand-light/40'
-                : 'text-slate-400'
+            className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-2xl transition-all ${
+              activeTab === tab.id ? 'text-brand-core' : 'text-slate-400'
             }`}
           >
-            <tab.icon className={`w-5 h-5 mb-1 ${activeTab === tab.id ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-            <span className={`text-[9px] ${activeTab === tab.id ? 'font-black' : 'font-bold'}`}>{tab.label}</span>
+            <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'fill-brand-core/10' : ''}`} />
+            <span className="text-[9px] font-bold">{tab.label}</span>
           </button>
         ))}
       </nav>
 
       {/* SOS Modal */}
       {showSOS && (
-        <div className="fixed inset-0 bg-brand-dark/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
-          <div className="bg-white rounded-4xl w-full max-w-xs p-8 shadow-2xl text-center relative overflow-hidden border-2 border-white">
-            <div className="absolute top-0 left-0 w-full h-2 bg-red-500"></div>
-            <button onClick={() => setShowSOS(false)} className="absolute top-4 right-4 p-2 rounded-xl bg-slate-50 text-slate-400">
-              <X className="w-4 h-4" />
-            </button>
-            <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-red-100 rotate-3">
-              <PhoneCall className="w-10 h-10 text-red-500" />
-            </div>
-            <h2 className="text-xl font-black text-slate-900 mb-2">发现异常信号？</h2>
-            <p className="text-slate-500 text-[13px] leading-relaxed mb-8 px-2 font-medium">如果您正处于呼吸困难、持续高热或剧烈疼痛中，请立即寻求专业医疗帮助。</p>
-            <div className="space-y-3">
-              <a href="tel:120" className="block w-full bg-red-500 text-white py-4 rounded-2xl font-black text-base shadow-xl shadow-red-500/20 active:scale-95 transition-all">
-                紧急呼叫 120
-              </a>
-              <button onClick={() => setShowSOS(false)} className="block w-full py-2 text-slate-400 font-bold text-sm">
-                暂不需要，返回页面
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl space-y-6 animate-in zoom-in-95 duration-300">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
+                  <PhoneCall className="w-4 h-4 text-red-500" />
+                </div>
+                <h3 className="text-lg font-black text-slate-800">紧急联系</h3>
+              </div>
+              <button onClick={() => setShowSOS(false)} className="p-2 bg-slate-50 rounded-xl text-slate-400">
+                <X className="w-5 h-5" />
               </button>
+            </div>
+            <div className="space-y-4">
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                如果您当前感到剧烈疼痛、高热不退或呼吸困难，请立即拨打急救电话或前往就近医院。
+              </p>
+              <div className="grid grid-cols-1 gap-3">
+                <a href="tel:120" className="bg-red-500 text-white py-4 rounded-2xl flex items-center justify-center gap-2 font-black shadow-lg shadow-red-200 active:scale-95 transition-all no-underline">
+                  <PhoneCall className="w-5 h-5" /> 拨打 120 急救
+                </a>
+                <button className="bg-slate-50 text-slate-600 py-4 rounded-2xl flex items-center justify-center gap-2 font-black active:scale-95 transition-all">
+                  联系我的主治医生
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Global Mascot */}
+      {activeTab !== 'chat' && activeTab !== 'game' && <GlobalMascot onChat={() => handleTabChange('chat')} />}
     </div>
   );
 };
