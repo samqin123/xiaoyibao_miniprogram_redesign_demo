@@ -11,7 +11,8 @@ import {
   Bot,
   Heart,
   Sparkles,
-  Users
+  Users,
+  Mic
 } from 'lucide-react';
 import { IdentityTag, User } from './types';
 import RoadmapPage from './pages/RoadmapPage';
@@ -22,7 +23,7 @@ import CommunityPage from './pages/CommunityPage';
 import ProfilePage from './pages/ProfilePage';
 import StageDetailPage from './pages/StageDetailPage';
 import LandingPage from './pages/LandingPage';
-import { DISCLAIMER } from './constants';
+import VoiceAssistantPage from './pages/VoiceAssistantPage';
 
 const MascotAvatar: React.FC<{ size?: string, className?: string }> = ({ size = "w-10 h-10", className = "" }) => (
   <div className={`${size} bg-gradient-to-br from-brand-core to-brand-dark rounded-full flex items-center justify-center relative shadow-sm border-2 border-white ${className}`}>
@@ -34,19 +35,21 @@ const MascotAvatar: React.FC<{ size?: string, className?: string }> = ({ size = 
 );
 
 const GlobalMascot: React.FC<{ onChat: () => void }> = ({ onChat }) => (
-  <div className="absolute bottom-24 right-6 z-[60] flex flex-col items-end gap-2 group pointer-events-none transition-transform duration-300">
-    <div className="bg-white px-3 py-1.5 rounded-xl shadow-xl border border-brand-light mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-      <p className="text-[10px] font-black text-brand-dark whitespace-nowrap">有问题问我哦！</p>
+  <div className="absolute bottom-24 right-6 z-[60] flex flex-col items-center gap-1 group pointer-events-none transition-transform duration-300">
+    <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-xl border border-brand-light opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1.5">
+      <div className="w-2 h-2 bg-brand-core rounded-full animate-pulse"></div>
+      <p className="text-[10px] font-black text-brand-dark whitespace-nowrap">开启实时语音通话</p>
     </div>
     <div 
       onClick={onChat}
-      className="pointer-events-auto bg-gradient-to-br from-brand-core to-brand-dark w-14 h-14 rounded-2xl flex items-center justify-center relative shadow-2xl border-4 border-white cursor-pointer hover:scale-110 active:scale-95 transition-all mascot-float"
+      className="pointer-events-auto bg-gradient-to-br from-brand-core to-brand-dark w-14 h-14 rounded-2xl flex flex-col items-center justify-center relative shadow-2xl border-4 border-white cursor-pointer hover:scale-110 active:scale-95 transition-all mascot-float"
     >
-      <Bot className="w-8 h-8 text-white" />
+      <Bot className="w-7 h-7 text-white" />
       <div className="absolute -top-2 -right-2">
-        <Sparkles className="w-5 h-5 text-brand-orange fill-brand-orange" />
+        <Mic className="w-5 h-5 text-brand-orange fill-white p-1 rounded-full bg-brand-orange shadow-sm" />
       </div>
     </div>
+    <p className="text-[8px] font-bold text-slate-400 mt-1 uppercase tracking-tighter opacity-60">点击语音通话</p>
   </div>
 );
 
@@ -159,6 +162,10 @@ const App: React.FC = () => {
     setActiveTab('community');
   };
 
+  const onGoToVoice = () => {
+    handleTabChange('voice');
+  };
+
   if (!isLoggedIn) {
     return <LandingPage onLogin={handleLogin} />;
   }
@@ -186,21 +193,22 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main ref={mainContentRef} className="flex-1 overflow-y-auto pb-24 scroll-smooth relative">
+      {/* Main Content Area - Completely removed pb-4 */}
+      <main ref={mainContentRef} className="flex-1 overflow-y-auto pb-0 scroll-smooth relative">
         {activeTab === 'roadmap' && (
           selectedStageId ? (
             <StageDetailPage 
               stageId={selectedStageId} 
               onBack={() => setSelectedStageId(null)} 
-              onGoToChat={() => handleTabChange('chat')}
+              onGoToChat={() => handleTabChange('voice')}
               isCareMode={isCareMode}
             />
           ) : (
             <RoadmapPage onSelectStage={setSelectedStageId} isCareMode={isCareMode} />
           )
         )}
-        {activeTab === 'chat' && <ChatPage user={user} onMessageSent={useQuota} onShare={() => updateQuota(10)} isCareMode={isCareMode} />}
+        {activeTab === 'chat' && <ChatPage user={user} onMessageSent={useQuota} onShare={() => updateQuota(10)} onGoToVoice={onGoToVoice} isCareMode={isCareMode} />}
+        {activeTab === 'voice' && <VoiceAssistantPage isCareMode={isCareMode} onBack={() => handleTabChange('chat')} />}
         {activeTab === 'articles' && (
           <ArticlesPage 
             onGoToMyPosts={navigateToMyPosts} 
@@ -228,14 +236,14 @@ const App: React.FC = () => {
             onToggleCareMode={toggleCareMode}
           />
         )}
-        
-        {/* Global Footer Disclaimer */}
-        <div className="py-2.5 px-6 bg-slate-50/80 text-center border-t border-slate-100">
-          <p className={`${isCareMode ? 'text-xs' : 'text-[10px]'} text-slate-400 font-medium leading-relaxed`}>
-            {DISCLAIMER}
-          </p>
-        </div>
       </main>
+
+      {/* Persistent Footer Disclaimer - Minimal gap and clear single line text */}
+      <div className="px-6 py-0.5 bg-white/40 backdrop-blur-sm text-center">
+        <p className={`${isCareMode ? 'text-[13px]' : 'text-[11px]'} text-slate-400 font-bold whitespace-nowrap overflow-hidden text-ellipsis select-none pointer-events-none`}>
+          ⚠️ 声明：内容仅供科普参考，不作医疗建议，就医请遵医嘱。
+        </p>
+      </div>
 
       {/* Navigation Bar */}
       <nav className="bg-white/90 backdrop-blur-md border-t border-slate-100 px-4 py-2 flex justify-between items-center sticky bottom-0 z-50">
@@ -249,7 +257,7 @@ const App: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => handleTabChange(tab.id)}
-            className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-2xl transition-all ${
+            className={`flex flex-col items-center gap-1 px-6 py-1.5 rounded-2xl transition-all ${
               activeTab === tab.id ? 'text-brand-core' : 'text-slate-400'
             }`}
           >
@@ -288,8 +296,8 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Global Mascot */}
-      {activeTab !== 'chat' && activeTab !== 'game' && !isCareMode && <GlobalMascot onChat={() => handleTabChange('chat')} />}
+      {/* Global Mascot - Triggers voice mode */}
+      {activeTab !== 'chat' && activeTab !== 'voice' && activeTab !== 'game' && !isCareMode && <GlobalMascot onChat={onGoToVoice} />}
     </div>
   );
 };
