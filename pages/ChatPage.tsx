@@ -1,11 +1,10 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, User as UserIcon, AlertCircle, Share2, Sparkles, Loader2, Bot, Heart } from 'lucide-react';
+import { Send, User as UserIcon, AlertCircle, Share2, Sparkles, Loader2, Bot, Heart, MessageSquarePlus } from 'lucide-react';
 import { User } from '../types';
 import { getGeminiResponse } from '../services/geminiService';
 
 const MascotAvatar: React.FC<{ className?: string, isCareMode?: boolean }> = ({ className = "w-10 h-10", isCareMode }) => (
-  <div className={`${isCareMode ? 'w-14 h-14' : className} bg-gradient-to-br from-brand-core to-brand-dark rounded-full flex items-center justify-center relative shadow-sm border-2 border-white`}>
+  <div className={`${isCareMode ? 'w-14 h-14' : className} bg-gradient-to-br from-brand-core to-brand-dark rounded-full flex items-center justify-center relative shadow-sm border-2 border-white mascot-float`}>
     <Bot className="w-1/2 h-1/2 text-white" />
     <div className="absolute -top-1 -right-1">
       <Heart className="w-3 h-3 text-brand-orange fill-brand-orange" />
@@ -32,22 +31,29 @@ const ChatPage: React.FC<Props> = ({ user, onMessageSent, onShare, isCareMode })
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const RECOMMENDED_QUESTIONS = [
+    "胰腺癌早期有什么征兆？",
+    "化疗期间怎么吃更有营养？",
+    "术后多久需要复查一次？"
+  ];
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(scrollToBottom, [messages, loading]);
 
-  const handleSend = async () => {
-    if (!input.trim() || loading) return;
+  const handleSend = async (textOverride?: string) => {
+    const textToSend = textOverride || input;
+    if (!textToSend.trim() || loading) return;
 
     if (!onMessageSent()) {
       setError("配额不足，请休息后再试。");
       return;
     }
 
-    const userMessage = input.trim();
-    setInput('');
+    const userMessage = textToSend.trim();
+    if (!textOverride) setInput('');
     setError(null);
     setMessages(prev => [...prev, { role: 'user', parts: [{ text: userMessage }] }]);
     setLoading(true);
@@ -83,7 +89,7 @@ const ChatPage: React.FC<Props> = ({ user, onMessageSent, onShare, isCareMode })
         {messages.length === 0 && (
           <div className="text-center py-12 space-y-6">
             <div className="flex justify-center">
-               <div className={`${isCareMode ? 'w-40 h-40' : 'w-32 h-32'} bg-white rounded-full flex items-center justify-center shadow-2xl relative p-4`}>
+               <div className={`${isCareMode ? 'w-40 h-40' : 'w-32 h-32'} bg-white rounded-full flex items-center justify-center shadow-2xl relative p-4 mascot-float`}>
                  <div className="w-full h-full bg-brand-core rounded-full flex items-center justify-center">
                    <Bot className={isCareMode ? "w-20 h-20 text-white" : "w-16 h-16 text-white"} />
                  </div>
@@ -140,6 +146,24 @@ const ChatPage: React.FC<Props> = ({ user, onMessageSent, onShare, isCareMode })
 
       {/* Input Area */}
       <div className={`p-6 bg-white border-t border-slate-50 rounded-t-[3rem] ${isCareMode ? 'care-p' : ''}`}>
+        {/* Recommended Questions */}
+        {!loading && (
+          <div className="flex gap-2 overflow-x-auto pb-4 -mx-2 px-2 scrollbar-hide">
+            {RECOMMENDED_QUESTIONS.map((q, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSend(q)}
+                className={`flex items-center gap-2 whitespace-nowrap bg-brand-soft text-brand-dark border border-brand-light rounded-2xl font-black shadow-sm hover:bg-white hover:border-brand-core transition-all active:scale-95 ${
+                  isCareMode ? 'px-6 py-4 text-base' : 'px-4 py-2.5 text-[11px]'
+                }`}
+              >
+                <MessageSquarePlus className={isCareMode ? "w-5 h-5" : "w-3.5 h-3.5"} />
+                {q}
+              </button>
+            ))}
+          </div>
+        )}
+
         {error && (
           <div className="mb-4 p-4 bg-red-50 text-red-500 text-sm font-bold rounded-xl flex items-center gap-2 border border-red-100">
             <AlertCircle className="w-5 h-5" /> {error}
@@ -157,7 +181,7 @@ const ChatPage: React.FC<Props> = ({ user, onMessageSent, onShare, isCareMode })
             }`}
           />
           <button
-            onClick={handleSend}
+            onClick={() => handleSend()}
             disabled={!input.trim() || loading}
             className={`flex items-center justify-center rounded-2xl transition-all ${
               isCareMode ? 'p-6 w-20' : 'p-3.5 w-14'
