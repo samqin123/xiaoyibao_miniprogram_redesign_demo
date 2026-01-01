@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob } from '@google/genai';
-import { Mic, Bot, Loader2, Sparkles, X, Volume2, Info, ChevronLeft, UserCheck, Heart } from 'lucide-react';
+import { Mic, Bot, Loader2, Sparkles, X, Volume2, Info, ChevronLeft, UserCheck, Heart, MicOff } from 'lucide-react';
 
-// 吉祥物图片路径 - 使用新的 HTTPS 链接
+// 吉祥物图片路径 - 使用 HTTPS 链接以确保跨域和安全加载
 const MASCOT_IMG = "https://picgo-1302991947.cos.ap-guangzhou.myqcloud.com/images/logo_512_image.png";
 
 // --- Manual Implementation of required functions as per instructions ---
@@ -62,7 +62,8 @@ const VOICE_SYSTEM_INSTRUCTION = `你现在是“小胰宝”实时语音科普�
 1. 友好、亲切、富有同理心，语气温润且富有鼓励性。
 2. 回答必须完整但极其简洁，确保每次回复的播报时长在1分钟内。
 3. 风险提示规范：回复末尾必须包含一句不超过15字的极简风险提示，例如：“AI回复仅供参考，不作医疗建议。”
-4. 仅限科普，严禁提供任何诊疗方案。`;
+4. 你具有实时打断能力。当你感知到用户正在说话或用户输入了新内容，请立即停止当前的回复流，转为倾听模式。
+5. 仅限科普，严禁提供任何诊疗方案。`;
 
 interface Props {
   isCareMode?: boolean;
@@ -116,12 +117,12 @@ const VoiceAssistantPage: React.FC<Props> = ({ isCareMode, onBack }) => {
     }
 
     if (inputAudioContextRef.current) {
-      inputAudioContextRef.current.close();
+      inputAudioContextRef.current.close().catch(() => {});
       inputAudioContextRef.current = null;
     }
 
     if (outputAudioContextRef.current) {
-      outputAudioContextRef.current.close();
+      outputAudioContextRef.current.close().catch(() => {});
       outputAudioContextRef.current = null;
     }
 
@@ -134,6 +135,7 @@ const VoiceAssistantPage: React.FC<Props> = ({ isCareMode, onBack }) => {
       setIsActive(true);
       setErrorMessage(null);
 
+      // Always use process.env.API_KEY directly in the initialization of the GoogleGenAI instance.
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
@@ -150,11 +152,12 @@ const VoiceAssistantPage: React.FC<Props> = ({ isCareMode, onBack }) => {
           onopen: () => {
             setStatus('listening');
             const source = inputCtx.createMediaStreamSource(stream);
-            const scriptProcessor = inputCtx.createScriptProcessor(4096, 1, 1);
+            const scriptProcessor = inputCtx.createScriptProcessor(2048, 1, 1);
             
             scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
               const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
               const pcmBlob = createBlob(inputData);
+              // CRITICAL: Solely rely on sessionPromise resolves and then call `session.sendRealtimeInput`
               sessionPromise.then((session) => {
                 session.sendRealtimeInput({ media: pcmBlob });
               });
@@ -170,7 +173,7 @@ const VoiceAssistantPage: React.FC<Props> = ({ isCareMode, onBack }) => {
               return;
             }
 
-            const base64EncodedAudioString = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
+            const base64EncodedAudioString = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             
             if (base64EncodedAudioString) {
               setStatus('speaking');
@@ -203,8 +206,9 @@ const VoiceAssistantPage: React.FC<Props> = ({ isCareMode, onBack }) => {
             }
           },
           onerror: (e: any) => {
+            console.error('Gemini Live error:', e);
             setStatus('error');
-            setErrorMessage('连接异常，请检查网络或麦克风。');
+            setErrorMessage('连接异常，请检查网络或重试。');
           },
           onclose: () => {
             if (isActive) stopSession();
@@ -215,15 +219,16 @@ const VoiceAssistantPage: React.FC<Props> = ({ isCareMode, onBack }) => {
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: selectedVoice.voice } },
           },
-          systemInstruction: VOICE_SYSTEM_INSTRUCTION + `\n当前用户偏好：${selectedVoice.label}，风格：${selectedVoice.desc}`,
+          systemInstruction: VOICE_SYSTEM_INSTRUCTION + `\n当前用户声音偏好：${selectedVoice.label}`,
         },
       });
 
       sessionRef.current = await sessionPromise;
 
     } catch (err) {
+      console.error('Voice Assistant start failed:', err);
       setStatus('error');
-      setErrorMessage('无法访问麦克风。');
+      setErrorMessage('无法开启麦克风权限。');
       stopSession();
     }
   };
@@ -236,153 +241,130 @@ const VoiceAssistantPage: React.FC<Props> = ({ isCareMode, onBack }) => {
     }
   };
 
-  const handleMascotClick = () => {
-    if (status === 'speaking') {
-      clearAllSources();
-      setStatus('listening');
-    }
-  };
-
+  // Fixed: Added JSX return for the component
   return (
-    <div className={`flex flex-col h-full bg-[#F2F9F6] items-center p-8 space-y-8 animate-in fade-in duration-500 overflow-hidden relative ${isCareMode ? 'care-mode-root' : ''}`}>
-      
-      {/* Header */}
-      <div className="w-full flex justify-start z-20">
-        <button 
-          onClick={() => {
-            stopSession();
-            if (onBack) onBack();
-          }}
-          className="flex items-center gap-2 text-slate-400 font-black hover:text-brand-dark transition-colors"
-        >
-          <ChevronLeft className="w-6 h-6" /> 返回对话
-        </button>
+    <div className={`flex flex-col h-full bg-slate-900 text-white relative overflow-hidden ${isCareMode ? 'care-mode-root' : ''}`}>
+      {/* Background Decor */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand-core rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-brand-orange rounded-full blur-[120px]"></div>
       </div>
 
-      {/* Visual Indicator */}
-      <div className="relative py-8 flex flex-col items-center justify-center">
-        {/* Breathing Light Layers */}
-        {(status === 'listening' || status === 'speaking' || status === 'connecting') && (
-          <>
-            <div className={`absolute w-64 h-64 bg-brand-core/10 rounded-full animate-pulse-subtle scale-110`}></div>
-            <div className={`absolute w-80 h-80 bg-brand-core/5 rounded-full animate-pulse-subtle delay-700 scale-125`}></div>
-            {status === 'speaking' && (
-               <div className={`absolute w-96 h-96 bg-brand-core/5 rounded-full animate-pulse scale-150 opacity-20`}></div>
-            )}
-          </>
-        )}
-
-        {/* Square Mascot Container */}
-        <div 
-          onClick={handleMascotClick}
-          className={`group cursor-pointer ${isCareMode ? 'w-52 h-52' : 'w-44 h-44'} bg-white rounded-[2.5rem] flex items-center justify-center shadow-2xl relative p-4 mascot-float transition-all hover:scale-105 active:scale-95 hover:ring-8 hover:ring-brand-core/5`}
+      {/* Header */}
+      <header className="px-6 pt-12 pb-6 flex items-center justify-between relative z-10">
+        <button 
+          onClick={onBack}
+          className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 transition-all active:scale-90"
         >
-          <div className={`w-full h-full bg-brand-soft rounded-[2rem] flex items-center justify-center relative overflow-hidden transition-all duration-500 ${status === 'speaking' ? 'scale-110 shadow-lg shadow-brand-core/20' : ''}`}>
-            <img src={MASCOT_IMG} alt="小胰宝" className="w-full h-full object-contain" />
-            <div className={`absolute inset-0 bg-brand-core/5 opacity-0 group-hover:opacity-100 transition-opacity ${status === 'speaking' ? 'opacity-20' : ''}`}></div>
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <div className="text-center">
+          <h2 className={`font-black tracking-tight ${isCareMode ? 'text-2xl' : 'text-lg'}`}>实时语音助手</h2>
+          <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Live Voice Service</p>
+        </div>
+        <button className="p-3 bg-white/10 rounded-2xl opacity-0 cursor-default">
+          <Info className="w-6 h-6" />
+        </button>
+      </header>
+
+      {/* Main content */}
+      <main className="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
+        <div className="relative mb-12">
+          <div className={`
+            relative z-20 w-48 h-48 rounded-[3rem] bg-white flex items-center justify-center shadow-2xl transition-all duration-500 overflow-hidden
+            ${status === 'listening' ? 'scale-110 ring-8 ring-brand-core/20' : ''}
+            ${status === 'speaking' ? 'scale-110 ring-8 ring-brand-orange/20' : ''}
+          `}>
+            <div className={`absolute inset-0 bg-brand-soft flex items-center justify-center`}>
+              <img src={MASCOT_IMG} alt="小胰宝" className={`w-[85%] h-[85%] object-contain ${isActive ? 'mascot-float' : ''}`} />
+            </div>
             
-            {/* Pulsing Audio Lines */}
-            {status === 'speaking' && (
-              <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-1.5 px-2">
-                <div className="w-1 h-6 bg-brand-core/60 rounded-full animate-[bounce_0.6s_ease-in-out_infinite] delay-75"></div>
-                <div className="w-1 h-10 bg-brand-core rounded-full animate-[bounce_0.8s_ease-in-out_infinite]"></div>
-                <div className="w-1 h-8 bg-brand-core/80 rounded-full animate-[bounce_0.5s_ease-in-out_infinite] delay-150"></div>
-                <div className="w-1 h-10 bg-brand-core rounded-full animate-[bounce_0.7s_ease-in-out_infinite] delay-300"></div>
-                <div className="w-1 h-6 bg-brand-core/60 rounded-full animate-[bounce_0.6s_ease-in-out_infinite] delay-450"></div>
+            {status === 'connecting' && (
+              <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center">
+                <Loader2 className="w-12 h-12 text-white animate-spin" />
               </div>
             )}
           </div>
-          
-          {/* Badge Decor */}
-          <div className="absolute -top-1 -right-1 bg-white p-2 rounded-2xl shadow-xl border-2 border-brand-light">
-             <Heart className="w-5 h-5 text-brand-orange fill-brand-orange" />
-          </div>
+
+          {isActive && (
+            <div className="absolute inset-0 z-10 -m-8 flex items-center justify-center pointer-events-none">
+              <div className={`absolute w-full h-full rounded-full border-2 border-brand-core/30 animate-ping`}></div>
+              <div className={`absolute w-full h-full rounded-full border-2 border-brand-orange/20 animate-pulse delay-700`}></div>
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* Dynamic Text */}
-      <div className="text-center space-y-3 relative z-10 max-w-xs">
-        <h2 className={`${isCareMode ? 'text-3xl' : 'text-2xl'} font-black text-slate-800 tracking-tight leading-none`}>
-          {status === 'idle' ? '语音实时科普' : 
-           status === 'connecting' ? '正在连接...' :
-           status === 'listening' ? '我在听，请提问' :
-           status === 'speaking' ? '为您讲解中' : 
-           '连接异常'}
-        </h2>
-        <p className={`${isCareMode ? 'text-lg' : 'text-sm'} text-slate-400 font-bold leading-relaxed px-4`}>
-          {status === 'idle' ? '选择一个声音风格开始交流' : 
-           status === 'listening' ? '您可以问我任何关于胰腺癌的问题' : 
-           status === 'speaking' ? '您可以随时说话来打断我' :
-           errorMessage || '请检查麦克风权限后重试'}
-        </p>
-      </div>
-
-      {/* Voice Selection Panel */}
-      {status === 'idle' && (
-        <div className="w-full flex flex-col gap-3 animate-in slide-in-from-bottom-4 duration-500">
-           <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest text-center mb-1">定制您的专属声音</div>
-           <div className="grid grid-cols-1 gap-2">
-             {VOICE_OPTIONS.map((opt) => (
-               <button
-                 key={opt.id}
-                 onClick={() => setSelectedVoice(opt)}
-                 className={`flex items-center justify-between px-6 py-4 rounded-2xl transition-all border-2 ${
-                   selectedVoice.id === opt.id 
-                    ? 'bg-white border-brand-core text-brand-dark shadow-md' 
-                    : 'bg-white/50 border-transparent text-slate-400 hover:bg-white'
-                 }`}
-               >
-                 <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${selectedVoice.id === opt.id ? 'bg-brand-light text-brand-core' : 'bg-slate-100 text-slate-300'}`}>
-                       <Volume2 className="w-4 h-4" />
-                    </div>
-                    <div className="text-left">
-                       <p className="text-sm font-black">{opt.label}</p>
-                       <p className="text-[10px] opacity-60 font-medium">{opt.desc}</p>
-                    </div>
-                 </div>
-                 {selectedVoice.id === opt.id && <UserCheck className="w-5 h-5 text-brand-core" />}
-               </button>
-             ))}
-           </div>
+        <div className="text-center space-y-3 mb-12">
+          {status === 'idle' && (
+            <>
+              <h3 className={`${isCareMode ? 'text-2xl' : 'text-xl'} font-black`}>点击开始通话</h3>
+              <p className="text-white/40 font-bold px-4">“您可以问我任何关于胰腺癌科普的问题”</p>
+            </>
+          )}
+          {status === 'connecting' && (
+            <h3 className={`${isCareMode ? 'text-2xl' : 'text-xl'} font-black animate-pulse`}>正在建立加密连接...</h3>
+          )}
+          {status === 'listening' && (
+            <div className="flex flex-col items-center gap-2">
+              <div className="bg-brand-core/20 text-brand-core px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-brand-core/30">倾听中...</div>
+              <h3 className={`${isCareMode ? 'text-2xl' : 'text-xl'} font-black`}>请对我说话</h3>
+            </div>
+          )}
+          {status === 'speaking' && (
+            <div className="flex flex-col items-center gap-2">
+              <div className="bg-brand-orange/20 text-brand-orange px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-brand-orange/30">回答中...</div>
+              <h3 className={`${isCareMode ? 'text-2xl' : 'text-xl'} font-black`}>小胰宝正在回答您</h3>
+            </div>
+          )}
+          {status === 'error' && (
+            <div className="flex flex-col items-center gap-2 text-red-400">
+              <h3 className={`${isCareMode ? 'text-2xl' : 'text-xl'} font-black`}>连接失败</h3>
+              <p className="text-sm font-bold">{errorMessage}</p>
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Main Switch */}
-      <div className="flex-1 flex flex-col justify-end pb-8">
         <button
           onClick={handleToggle}
-          className={`group relative flex items-center justify-center rounded-full transition-all duration-500 shadow-2xl ${
-            isCareMode ? 'w-24 h-24' : 'w-20 h-20'
-          } ${
-            isActive 
-              ? 'bg-white text-red-500 border-2 border-red-100 hover:scale-110 active:scale-90' 
-              : 'bg-brand-dark text-white hover:scale-110 active:scale-90 shadow-brand-dark/30'
-          }`}
+          className={`
+            w-24 h-24 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90 border-8 border-slate-800
+            ${isActive ? 'bg-red-500 text-white' : 'bg-brand-core text-white'}
+          `}
         >
-          {status === 'connecting' ? (
-            <Loader2 className="w-10 h-10 animate-spin" />
-          ) : isActive ? (
-            <X className="w-8 h-8" />
-          ) : (
-            <Mic className="w-8 h-8" />
-          )}
-          
-          {!isActive && (
-             <div className="absolute inset-0 rounded-full border-4 border-brand-core/20 animate-ping"></div>
-          )}
+          {isActive ? <MicOff className="w-10 h-10" /> : <Mic className="w-10 h-10" />}
         </button>
-      </div>
+      </main>
 
-      {/* Risk Notice */}
-      <div className="bg-white/40 backdrop-blur-xl border border-white p-3 rounded-2xl flex items-start gap-2 max-w-sm shadow-sm">
-        <Info className="w-3.5 h-3.5 text-brand-core shrink-0 mt-0.5" />
-        <p className="text-[9px] font-bold text-slate-400 leading-normal">
-          AI科普仅供参考，不作医疗建议。紧急情况请拨打120。
-        </p>
-      </div>
+      <footer className="p-8 pb-12 relative z-10">
+        <div className="bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-6 border border-white/10">
+          <div className="flex items-center gap-2 mb-4 px-2">
+            <Volume2 className="w-4 h-4 text-brand-core" />
+            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">选择语音偏好</span>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {VOICE_OPTIONS.map((v) => (
+              <button
+                key={v.id}
+                disabled={isActive}
+                onClick={() => setSelectedVoice(v)}
+                className={`
+                  p-4 rounded-2xl flex flex-col items-center gap-1 transition-all border-2
+                  ${selectedVoice.id === v.id 
+                    ? 'bg-brand-core border-brand-core text-white shadow-lg' 
+                    : 'bg-white/5 border-transparent text-white/40 hover:bg-white/10'}
+                  ${isActive ? 'opacity-50 grayscale cursor-not-allowed' : ''}
+                `}
+              >
+                <span className="text-[11px] font-black">{v.label}</span>
+                <span className="text-[8px] font-bold opacity-60 line-clamp-1">{v.desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
 
+// Fixed: Export the component as default to match App.tsx imports
 export default VoiceAssistantPage;
