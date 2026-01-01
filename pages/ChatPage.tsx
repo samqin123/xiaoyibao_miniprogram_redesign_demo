@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, User as UserIcon, AlertCircle, Share2, Sparkles, Loader2, Bot, Heart, MessageSquarePlus, Mic } from 'lucide-react';
 import { User } from '../types';
@@ -103,21 +102,31 @@ const ChatPage: React.FC<Props> = ({ user, onMessageSent, onShare, onGoToVoice, 
         {messages.length === 0 && (
           <div className="text-center py-12 space-y-6">
             <div className="flex justify-center flex-col items-center gap-4">
-               {/* Clickable Mascot - Triggers Voice Assistant */}
+               {/* 还原图片中的 AI 助手大圆形按钮风格 */}
                <div 
                  onClick={onGoToVoice}
-                 className={`group cursor-pointer ${isCareMode ? 'w-44 h-44' : 'w-36 h-36'} bg-white rounded-[2.5rem] flex items-center justify-center shadow-2xl relative p-2 mascot-float transition-all hover:scale-110 active:scale-95 hover:ring-8 hover:ring-brand-core/5`}
+                 className={`group cursor-pointer ${isCareMode ? 'w-52 h-52' : 'w-44 h-44'} bg-white rounded-full flex items-center justify-center shadow-2xl relative p-4 mascot-float transition-all hover:scale-105 active:scale-95 hover:ring-8 hover:ring-brand-core/5`}
                >
-                 <div className="w-full h-full bg-brand-soft rounded-[2rem] flex items-center justify-center relative overflow-hidden">
-                   <img src={MASCOT_IMG} alt="小胰宝" className="w-full h-full object-contain" />
-                   <div className="absolute inset-0 bg-brand-core/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                 {/* 绿色圆形内饰 */}
+                 <div className="w-full h-full bg-brand-core rounded-full flex items-center justify-center relative overflow-hidden shadow-inner">
+                   {/* 替换 Bot 为彩色 Logo */}
+                   <img 
+                    src={MASCOT_IMG} 
+                    alt="小胰宝" 
+                    className={`object-contain brightness-110 drop-shadow-md ${isCareMode ? 'w-36 h-36' : 'w-28 h-28'}`} 
+                   />
+                   <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                  </div>
-                 {/* Voice Tag Decor */}
-                 <div className="absolute -bottom-2 right-2 bg-brand-orange text-white p-2 rounded-xl shadow-lg border-2 border-white animate-bounce-subtle">
-                   <Mic className="w-4 h-4" />
+                 {/* 橙色麦克风角标 - 按照圆形布局调整位置 */}
+                 <div className="absolute bottom-4 right-4 bg-brand-orange text-white p-3 rounded-2xl shadow-xl border-4 border-white animate-bounce-subtle">
+                   <Mic className={isCareMode ? "w-7 h-7" : "w-6 h-6"} />
+                 </div>
+                 {/* 红心装饰 */}
+                 <div className="absolute top-6 right-8 bg-white p-1 rounded-full shadow-sm border border-brand-light">
+                   <Heart className="w-4 h-4 text-brand-orange fill-brand-orange" />
                  </div>
                </div>
-               <p className={`${isCareMode ? 'text-sm' : 'text-[10px]'} font-black text-brand-core uppercase tracking-widest bg-brand-light px-4 py-1.5 rounded-full animate-pulse`}>
+               <p className={`${isCareMode ? 'text-sm font-black' : 'text-[11px] font-black'} text-brand-core uppercase tracking-widest bg-brand-light px-4 py-1.5 rounded-full animate-pulse mt-2`}>
                  点击开启实时通话
                </p>
             </div>
